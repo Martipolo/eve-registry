@@ -2,21 +2,27 @@ name: Actualiser la Base de Données
 
 on:
   schedule:
-    # Ce cron signifie : Lancer le script à la minute 0 de chaque heure
     - cron: '0 * * * *'
-  workflow_dispatch: # Permet de lancer le robot manuellement depuis GitHub !
+  workflow_dispatch:
+
+# --- LA CORRECTION EST ICI ---
+# On donne explicitement le droit au robot de modifier les fichiers
+permissions:
+  contents: write
+# -----------------------------
 
 jobs:
   update-database:
     runs-on: ubuntu-latest
     steps:
+      # On passe en v4 pour corriger le warning Node.js
       - name: 📥 Récupérer le code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       - name: ⚙️ Préparer Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           
       - name: 🤖 Lancer l'aspiration des joueurs
         run: node scraper.js
