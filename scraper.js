@@ -28,11 +28,11 @@ async function fetchAll() {
 
     while (hasNextPage) {
       try {
-        // On demande 100 joueurs d'un coup
+        // On repasse à 50 (la limite maximale autorisée par Sui)
         const response = await fetch(GQL, {
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({query: Q_BY_TYPE, variables: {type: t, first: 100, after: cursor}})
+          body: JSON.stringify({query: Q_BY_TYPE, variables: {type: t, first: 50, after: cursor}})
         });
         
         const d = await response.json();
