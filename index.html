@@ -8,7 +8,7 @@
 <style>
   :root {
     --bg:#050a12;--bg2:#080f1c;--bg3:#0a1628;
-    --accent:#1a9fd4;--accent2:#0d6ea3;--glow:#1a9fd444;
+    --accent:#f05a22;--accent2:#b33b12;--glow:#f05a2244;
     --text:#c8dff0;--text2:#7ba8c8;--text3:#3d6a8a;
     --border:#1a3a5c;--border2:#0f2440;
     --gold:#d4a520;--gold2:#f0c040;
@@ -37,7 +37,7 @@
   .selected-card{background:var(--card);border:1px solid var(--accent);box-shadow:0 0 24px var(--glow);padding:22px 28px;margin-bottom:28px;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));display:none;animation:fadeIn .2s ease;}
   @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
   .selected-card.visible{display:block;}
-  .selected-card::before{content:'SELECTED CHARACTER';position:absolute;top:-1px;left:28px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:0 8px;transform:translateY(-50%);}
+  .selected-card::before{content:'SELECTED CHARACTER';position:absolute;top:-1px;left:28px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:0 8px;}
   .sc-name{font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:16px;}
   .sc-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   .sc-field label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px;}
@@ -47,7 +47,7 @@
   .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
 
   .search-panel{background:var(--card);border:1px solid var(--border);padding:22px 28px;margin-bottom:24px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);}
-  .search-panel::before{content:'SEARCH';position:absolute;top:-1px;left:24px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:0 8px;transform:translateY(-50%);}
+  .search-panel::before{content:'SEARCH';position:absolute;top:-1px;left:24px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:0 8px;}
   .search-row{display:flex;gap:10px;align-items:stretch;}
   .search-input-wrap{flex:1;position:relative;}
   .search-input-wrap::before{content:'>';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:13px;}
