@@ -20,7 +20,7 @@ async function fetchAll() {
     let cursor = null;
     let pageCount = 0;
 
-    console.log(`Début de l'aspiration pour le type: ${t}`);
+    console.log(`Début de l'aspiration totale pour : ${t}`);
 
     while (hasNextPage) {
       try {
@@ -35,6 +35,7 @@ async function fetchAll() {
         if (!objects) break;
         
         const nodes = objects.nodes || [];
+        // Transformation des données...
         const parsed = nodes.map(n => {
           const j = n?.asMoveObject?.contents?.json;
           if (!j) return null;
@@ -54,17 +55,19 @@ async function fetchAll() {
         cursor = objects.pageInfo?.endCursor;
         pageCount++;
         
-        console.log(`Page ${pageCount} récupérée. Total en mémoire : ${results.length}`);
+        // Log de progression pour suivre l'avancement dans la console GitHub
+        if (pageCount % 10 === 0) {
+          console.log(`📊 Progression : ${results.length} personnages récupérés...`);
+        }
       } catch (e) {
-        console.error("Erreur durant la pagination :", e.message);
-        break; // On arrête la boucle en cas de plantage réseau de Sui
+        console.error("⚠️ Interruption réseau :", e.message);
+        break; 
       }
     }
   }
   
-  // On sauvegarde tout dans le fichier JSON
   fs.writeFileSync('database.json', JSON.stringify(results));
-  console.log(`Terminé ! Fichier database.json généré avec ${results.length} personnages.`);
+  console.log(`✅ Extraction terminée : ${results.length} personnages sauvegardés.`);
 }
 
 fetchAll();
