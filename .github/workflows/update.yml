@@ -1,0 +1,29 @@
+name: Actualiser la Base de Données
+
+on:
+  schedule:
+    # Ce cron signifie : Lancer le script à la minute 0 de chaque heure
+    - cron: '0 * * * *'
+  workflow_dispatch: # Permet de lancer le robot manuellement depuis GitHub !
+
+jobs:
+  update-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v3
+        
+      - name: ⚙️ Préparer Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: 🤖 Lancer l'aspiration des joueurs
+        run: node scraper.js
+        
+      - name: 💾 Sauvegarder et publier database.json
+        run: |
+          git config --global user.name "GitHub Action Robot"
+          git config --global user.email "action@github.com"
+          git add database.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Auto-update database.json" && git push)
