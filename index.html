@@ -95,19 +95,6 @@
   footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--border2);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;line-height:2.2;}
   footer span{color:var(--accent);}
   ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
-
-  /* --- STYLES INVENTAIRE SSU --- */
-  .ssu-section { margin-top: 24px; border-top: 1px dashed var(--border); padding-top: 20px; }
-  .ssu-header { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--gold); letter-spacing:3px; margin-bottom:16px; }
-  .ssu-card { background: var(--bg3); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; position: relative; }
-  .ssu-title { font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:600; color:#fff; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center; }
-  .capacity-bar { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--border2); }
-  .capacity-fill { height: 100%; background: var(--accent); transition: width 0.5s ease; }
-  .inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-  .inv-item { background: var(--card); border: 1px solid var(--border2); padding: 8px 10px; font-family:'Share Tech Mono',monospace; transition: border-color 0.2s; }
-  .inv-item:hover { border-color: var(--accent); }
-  .inv-qty { color: var(--green); font-size: 13px; font-weight: bold; margin-bottom: 2px; }
-  .inv-type { color: var(--text2); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
 </style>
 </head>
 <body>
@@ -144,14 +131,10 @@
       <label>Move Type</label>
       <div class="value" id="scType" style="font-size:10px;opacity:.7">—</div>
     </div>
-  </div> <div class="ssu-section">
-    <div class="ssu-header">/// SMART STORAGE UNITS ///</div>
-    <div id="inventoryContainer">
-      <div class="search-hint">// Sélectionnez un personnage pour scanner ses coffres</div>
-    </div>
   </div>
- 
-</div><div class="search-panel">
+</div>
+
+<div class="search-panel">
   <div class="search-row">
     <div class="search-input-wrap">
       <input type="text" id="searchInput" placeholder="Filtrer par nom ou ID..." autocomplete="off" spellcheck="false"/>
@@ -189,8 +172,6 @@ const GQL = '/api/graphql';
 const typePatterns = [
   '0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::character::Character'
 ];
-
-const CAP_TYPE = '0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::access::OwnerCap<0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::storage_unit::StorageUnit>';
 
 const Q_BY_TYPE = `
 query GetByType($type: String, $first: Int, $after: String) {
@@ -300,108 +281,6 @@ async function gql(endpoint, query, variables) {
   return d;
 }
 
-async function loadInventory(wallet) {
-  const $inv = document.getElementById('inventoryContainer');
-  if (!wallet || wallet === '—') {
-    $inv.innerHTML = '<div class="search-hint">// Aucun wallet associé pour scanner les SSU</div>';
-    return;
-  }
-
-  $inv.innerHTML = '<div class="status-bar"><div class="dot loading"></div><span>Liaison avec les terminaux de stockage...</span></div>';
-
-  try {
-    // ÉTAPE 1 : Trouver les OwnerCaps (Badges d'accès SSU) dans le wallet du joueur
-    const qCaps = `
-    query GetCaps($owner: SuiAddress!, $type: String!) {
-      address(address: $owner) {
-        objects(filter: {type: $type}) {
-          nodes { asMoveObject { contents { json } } }
-        }
-      }
-    }`;
-    const dCaps = await gql(GQL, qCaps, { owner: wallet, type: CAP_TYPE });
-    const caps = dCaps?.data?.address?.objects?.nodes || [];
-
-    if (caps.length === 0) {
-      $inv.innerHTML = '<div class="search-hint">// Aucun Smart Storage Unit détecté pour ce joueur</div>';
-      return;
-    }
-
-    let html = '';
-
-    // ÉTAPE 2 : Pour chaque badge, on ouvre le coffre associé
-    for (let i = 0; i < caps.length; i++) {
-      const capJson = caps[i]?.asMoveObject?.contents?.json;
-      const suId = capJson?.authorized_object_id; // L'ID du StorageUnit
-      if (!suId) continue;
-
-      // ÉTAPE 3 : On interroge les "Dynamic Fields" du Storage Unit pour trouver l'Inventaire
-      const qSU = `
-      query GetInv($id: SuiAddress!) {
-        object(address: $id) {
-          dynamicFields {
-            nodes {
-              value {
-                ... on MoveObject { contents { type { repr } json } }
-              }
-            }
-          }
-        }
-      }`;
-
-      const dSU = await gql(GQL, qSU, { id: suId });
-      const dfNodes = dSU?.data?.object?.dynamicFields?.nodes || [];
-
-      // ÉTAPE 4 : On isole le Child Object qui contient le mot "Inventory"
-      const invNode = dfNodes.find(n => n.value?.contents?.type?.repr?.includes('::inventory::Inventory'));
-
-      if (invNode) {
-        const inv = invNode.value.contents.json;
-        const maxCap = parseInt(inv.max_capacity || 0);
-        const usedCap = parseInt(inv.used_capacity || 0);
-        const percent = maxCap > 0 ? Math.min(100, (usedCap / maxCap) * 100) : 0;
-
-        // ÉTAPE 5 : On liste les items
-        const itemsRaw = inv.items?.fields?.contents || [];
-        let itemsHtml = '';
-
-        if (itemsRaw.length === 0) {
-          itemsHtml = '<div class="search-hint" style="grid-column:1/-1">Le coffre est vide.</div>';
-        } else {
-          itemsRaw.forEach(item => {
-            const val = item.fields?.value?.fields || {};
-            const typeId = val.type_id || 'Inconnu';
-            const qty = val.quantity || 0;
-            itemsHtml += `
-              <div class="inv-item">
-                <div class="inv-qty">${qty.toLocaleString()}x</div>
-                <div class="inv-type">ID: ${typeId}</div>
-              </div>`;
-          });
-        }
-
-        // On construit la carte HTML du SSU
-        html += `
-          <div class="ssu-card">
-            <div class="ssu-title">
-              <span>SSU Alpha-${suId.substring(2,6).toUpperCase()}</span>
-              <span style="font-size:12px; color:var(--text3); font-family:'Share Tech Mono',monospace;">
-                ${(usedCap/1000).toFixed(1)}k / ${(maxCap/1000).toFixed(1)}k m³
-              </span>
-            </div>
-            <div class="capacity-bar"><div class="capacity-fill" style="width:${percent}%"></div></div>
-            <div class="inv-grid">${itemsHtml}</div>
-          </div>`;
-      }
-    }
-
-    $inv.innerHTML = html || '<div class="search-hint">// Impossible de décrypter le contenu des SSU</div>';
-
-  } catch (e) {
-    $inv.innerHTML = `<div class="err-box">Erreur de liaison réseau: ${e.message}</div>`;
-  }
-}
-
 function parseNodes(nodes) {
   return nodes.map(n => {
     const j = n?.asMoveObject?.contents?.json;
@@ -457,9 +336,6 @@ function sel(i) {
   document.getElementById('scType').textContent   = c.typeRepr||c.tenant||'—';
   $card.classList.add('visible');
   $card.scrollIntoView({behavior:'smooth',block:'nearest'});
-
-  // --- NOUVEAU : On lance le scan de l'inventaire ---
-  loadInventory(c.wallet);
 }
 
 function cp(id, label, btn) {
