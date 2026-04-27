@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVE Frontier — Character Registry</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#050a12;--bg2:#080f1c;--bg3:#0a1628;
+    --accent:#1a9fd4;--accent2:#0d6ea3;--glow:#1a9fd444;
+    --text:#c8dff0;--text2:#7ba8c8;--text3:#3d6a8a;
+    --border:#1a3a5c;--border2:#0f2440;
+    --gold:#d4a520;--gold2:#f0c040;
+    --red:#d43020;--green:#20c870;--card:#060d1a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background-image:
+    radial-gradient(1px 1px at 15% 25%,#ffffff22 0%,transparent 100%),
+    radial-gradient(1px 1px at 35% 65%,#ffffff18 0%,transparent 100%),
+    radial-gradient(1px 1px at 75% 18%,#ffffff20 0%,transparent 100%),
+    radial-gradient(1px 1px at 88% 72%,#ffffff15 0%,transparent 100%),
+    radial-gradient(2px 2px at 82% 38%,#1a9fd420 0%,transparent 100%),
+    radial-gradient(1px 1px at 52% 88%,#ffffff12 0%,transparent 100%);
+    pointer-events:none;z-index:0;}
+  .container{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:40px 24px 80px;}
+
+  header{text-align:center;padding-bottom:44px;border-bottom:1px solid var(--border2);margin-bottom:36px;position:relative;}
+  header::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:200px;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
+  .logo-symbol{display:inline-block;width:52px;height:52px;border:1px solid var(--accent);transform:rotate(45deg);margin-bottom:20px;position:relative;box-shadow:0 0 20px var(--glow),inset 0 0 10px var(--glow);}
+  .logo-symbol::before{content:'';position:absolute;inset:6px;border:1px solid var(--accent2);}
+  h1{font-size:30px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:var(--text);margin-bottom:8px;}
+  .subtitle{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
+  .subtitle span{color:var(--accent);}
+
+  .selected-card{background:var(--card);border:1px solid var(--accent);box-shadow:0 0 24px var(--glow);padding:22px 28px;margin-bottom:28px;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));display:none;animation:fadeIn .2s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  .selected-card.visible{display:block;}
+  .selected-card::before{content:'SELECTED CHARACTER';position:absolute;top:-1px;left:28px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:0 8px;transform:translateY(-50%);}
+  .sc-name{font-size:26px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:16px;}
+  .sc-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .sc-field label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px;}
+  .sc-field .value{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent);word-break:break-all;line-height:1.5;}
+  .sc-field .value.id-v{color:var(--gold2);font-size:13px;}
+  .copy-btn{display:inline-block;margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);background:none;border:1px solid var(--border);padding:3px 10px;cursor:pointer;text-transform:uppercase;transition:all .15s;}
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  .search-panel{background:var(--card);border:1px solid var(--border);padding:22px 28px;margin-bottom:24px;position:relative;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,0 100%);}
+  .search-panel::before{content:'SEARCH';position:absolute;top:-1px;left:24px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:0 8px;transform:translateY(-50%);}
+  .search-row{display:flex;gap:10px;align-items:stretch;}
+  .search-input-wrap{flex:1;position:relative;}
+  .search-input-wrap::before{content:'>';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:13px;}
+  input[type=text]{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:14px;padding:10px 14px 10px 30px;outline:none;transition:border-color .2s;height:44px;}
+  input[type=text]::placeholder{color:var(--text3);}
+  input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 12px var(--glow);}
+  .btn{background:var(--accent2);border:1px solid var(--accent);color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;padding:10px 22px;cursor:pointer;transition:all .2s;clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);white-space:nowrap;}
+  .btn:hover{background:var(--accent);box-shadow:0 0 16px var(--glow);}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .search-hint{margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
+
+  .status-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;}
+  .dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
+  .dot.loading{background:var(--gold);animation:pulse 1s infinite;}
+  .dot.err{background:var(--red);}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .badge{display:inline-block;background:var(--bg3);border:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:1px;color:var(--accent);padding:2px 8px;}
+
+  .tbl-head{display:grid;grid-template-columns:50px 1fr 260px;padding:8px 16px;border-bottom:1px solid var(--border2);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
+  .results-list{list-style:none;}
+  .char-row{display:grid;grid-template-columns:50px 1fr 260px;padding:11px 16px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .15s;position:relative;align-items:center;}
+  .char-row:hover{background:var(--bg3);}
+  .char-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .15s;}
+  .char-row:hover::before{background:var(--accent);}
+  .char-row.hl{background:#0a1f36;border-bottom-color:var(--accent);}
+  .char-row.hl::before{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+  .char-idx{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);}
+  .char-nm{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;color:var(--text);}
+  .char-row:hover .char-nm,.char-row.hl .char-nm{color:#fff;}
+  .char-id-cell{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);word-break:break-all;}
+  .char-row:hover .char-id-cell{color:var(--accent);}
+  .char-row.hl .char-id-cell{color:var(--gold2);}
+
+  .empty-state{text-align:center;padding:60px 0;color:var(--text3);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;}
+  .empty-state .icon{font-size:32px;margin-bottom:16px;opacity:.3;}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .err-box{background:#120506;border:1px solid #8b2020;padding:18px 22px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:1px;line-height:2;color:#e87070;}
+  .err-box strong{color:var(--red);letter-spacing:2px;}
+  code{font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:11px;}
+
+  footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--border2);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;line-height:2.2;}
+  footer span{color:var(--accent);}
+  ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="logo-symbol"></div>
+  <h1>Character Registry</h1>
+  <p class="subtitle">EVE FRONTIER &nbsp;<span>///</span>&nbsp; BLOCKCHAIN EXPLORER &nbsp;<span>///</span>&nbsp; <span>SUI TESTNET</span></p>
+</header>
+
+<div class="selected-card" id="selectedCard">
+  <div class="sc-name" id="scName">—</div>
+  <div class="sc-fields">
+    <div class="sc-field">
+      <label>Character ID (item_id)</label>
+      <div class="value id-v" id="scId">—</div>
+      <button class="copy-btn" onclick="cp('scId','[ copy id ]',this)">[ copy id ]</button>
+    </div>
+    <div class="sc-field">
+      <label>Sui Object Address</label>
+      <div class="value" id="scAddr">—</div>
+      <button class="copy-btn" onclick="cp('scAddr','[ copy addr ]',this)">[ copy addr ]</button>
+    </div>
+    <div class="sc-field">
+      <label>Wallet (character_address)</label>
+      <div class="value" id="scWallet">—</div>
+    </div>
+    <div class="sc-field">
+      <label>Tribe ID</label>
+      <div class="value" id="scTribe">—</div>
+    </div>
+    <div class="sc-field" style="grid-column:1/-1">
+      <label>Move Type</label>
+      <div class="value" id="scType" style="font-size:10px;opacity:.7">—</div>
+    </div>
+  </div>
+</div>
+
+<div class="search-panel">
+  <div class="search-row">
+    <div class="search-input-wrap">
+      <input type="text" id="searchInput" placeholder="Filtrer par nom ou ID..." autocomplete="off" spellcheck="false"/>
+    </div>
+    <button class="btn" id="searchBtn" onclick="applyFilter()">Filtrer</button>
+  </div>
+  <p class="search-hint">// tous les personnages sont chargés depuis la blockchain Sui — filtrage local</p>
+</div>
+
+<div class="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="statusTxt">Initialisation...</span>
+  <span id="badge"></span>
+</div>
+
+<div id="results">
+  <div class="empty-state">
+    <div class="icon">◈</div>
+    <div><span class="spin"></span>Connexion à la blockchain Sui...</div>
+  </div>
+</div>
+
+<footer>
+  <div>API: <span>GraphQL — sui-testnet.mystenlabs.com</span></div>
+  <div>Type Move: <span>::character::PlayerProfile</span> | Source: <span>@evefrontier/dapp-kit</span></div>
+  <div>Données 100% publiques on-chain — aucune authentification requise</div>
+</footer>
+
+</div>
+<script>
+// ── Config ───────────────────────────────────────────────────────────────
+const GQL = '/api/graphql';
+
+// L'adresse officielle du contrat d'EVE Frontier sur le testnet
+const typePatterns = [
+  '0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::character::Character'
+];
+
+const Q_BY_TYPE = `
+query GetByType($type: String, $first: Int, $after: String) {
+  objects(filter:{type:$type} first:$first after:$after) {
+    nodes {
+      address
+      asMoveObject {
+        contents { json type { repr } }
+      }
+    }
+    pageInfo { hasNextPage endCursor }
+  }
+}`;
+
+// ── State ─────────────────────────────────────────────────────────────────
+let all=[], filtered=[];
+
+const $dot    = document.getElementById('dot');
+const $status = document.getElementById('statusTxt');
+const $badge  = document.getElementById('badge');
+const $res    = document.getElementById('results');
+const $card   = document.getElementById('selectedCard');
+const $input  = document.getElementById('searchInput');
+
+window.addEventListener('DOMContentLoaded', boot);
+$input.addEventListener('input', applyFilter);
+
+async function boot() {
+  st('loading','Chargement de la base de données...');
+  try {
+    // On charge simplement le fichier JSON statique
+    const r = await fetch('database.json');
+    if (!r.ok) throw new Error("Fichier introuvable");
+    const chars = await r.json();
+    
+    if (chars.length) {
+      done(chars);
+    } else {
+      throw new Error("Base vide");
+    }
+  } catch(e) {
+    st('err', 'Erreur de chargement.');
+    $res.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">◈</div>
+        <div>Impossible de charger les données : ${e.message}</div>
+      </div>`;
+  }
+}
+
+function done(chars) {
+  all = chars; filtered = chars;
+  render(chars);
+  st('on', `${chars.length} personnages chargés instantanément`);
+  $badge.innerHTML = `<span class="badge">${chars.length}</span>`;
+  document.getElementById('searchInput').disabled = false;
+}
+
+// ── GraphQL Sui ───────────────────────────────────────────────────────────
+async function tryGraphQL() {
+  let results = [];
+  const maxPages = 20; // Limite de sécurité (20 pages x 50 = 1000 joueurs max)
+
+  for (const t of typePatterns) {
+    try {
+      let hasNextPage = true;
+      let cursor = null;
+      let pageCount = 0;
+
+      while (hasNextPage && pageCount < maxPages) {
+        // Mise à jour de l'UI en temps réel
+        st('loading', `Aspiration des données... (${results.length} trouvés)`);
+        
+        const data = await gql(GQL, Q_BY_TYPE, { type: t, first: 50, after: cursor });
+        const objects = data?.data?.objects;
+        
+        if (!objects) break;
+
+        const nodes = objects.nodes || [];
+        results = results.concat(parseNodes(nodes));
+
+        // On regarde s'il y a une page suivante
+        hasNextPage = objects.pageInfo?.hasNextPage;
+        cursor = objects.pageInfo?.endCursor;
+        pageCount++;
+      }
+    } catch(e) { 
+      console.warn('[gql]', t, e.message); 
+      // Si une page plante, on renvoie quand même ce qu'on a déjà trouvé
+      break; 
+    }
+  }
+  return results;
+}
+
+async function gql(endpoint, query, variables) {
+  const r = await fetch(endpoint, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body: JSON.stringify({query, variables}),
+    // On laisse 15 secondes max à la blockchain pour répondre
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const d = await r.json();
+  if (d.errors?.length) throw new Error(d.errors[0]?.message);
+  return d;
+}
+
+function parseNodes(nodes) {
+  return nodes.map(n => {
+    const j = n?.asMoveObject?.contents?.json;
+    const t = n?.asMoveObject?.contents?.type?.repr || '';
+    if (!j) return null;
+    return {
+      address : n.address || '',
+      name    : j.metadata?.name || j.name || 'Inconnu',
+      itemId  : j.key?.item_id || j.id || '',
+      wallet  : j.character_address || '',
+      tribe   : j.tribe_id !== undefined ? String(j.tribe_id) : '',
+      tenant  : j.key?.tenant || '',
+      typeRepr: t,
+    };
+  }).filter(c => c && c.name);
+}
+
+// ── UI Actions ────────────────────────────────────────────────────────────
+function applyFilter() {
+  const q = $input.value.trim().toLowerCase();
+  filtered = q ? all.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.itemId.toLowerCase().includes(q)
+  ) : all;
+  render(filtered);
+  $badge.innerHTML = `<span class="badge">${filtered.length} / ${all.length}</span>`;
+}
+
+function render(chars) {
+  if (!chars.length) {
+    $res.innerHTML = `<div class="empty-state"><div class="icon">◈</div><div>Aucun personnage</div></div>`;
+    return;
+  }
+  const rows = chars.map((c,i) => `
+    <li class="char-row" onclick="sel(${i})">
+      <div class="char-idx">${String(i+1).padStart(4,'0')}</div>
+      <div class="char-nm">${esc(c.name||'—')}</div>
+      <div class="char-id-cell">${esc(c.itemId || (c.address?c.address.slice(0,22)+'…':'—'))}</div>
+    </li>`).join('');
+  $res.innerHTML = `
+    <div class="tbl-head"><span>#</span><span>Character Name</span><span>Character ID</span></div>
+    <ul class="results-list">${rows}</ul>`;
+}
+
+function sel(i) {
+  const c = filtered[i]; if(!c) return;
+  document.querySelectorAll('.char-row').forEach((r,j)=>r.classList.toggle('hl',j===i));
+  document.getElementById('scName').textContent   = (c.name||'—').toUpperCase();
+  document.getElementById('scId').textContent     = c.itemId||'—';
+  document.getElementById('scAddr').textContent   = c.address||'—';
+  document.getElementById('scWallet').textContent = c.wallet||'—';
+  document.getElementById('scTribe').textContent  = c.tribe||'—';
+  document.getElementById('scType').textContent   = c.typeRepr||c.tenant||'—';
+  $card.classList.add('visible');
+  $card.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function cp(id, label, btn) {
+  const v = document.getElementById(id)?.textContent;
+  if (v && v!=='—') navigator.clipboard.writeText(v).then(()=>{
+    btn.textContent='[ copied! ]';
+    setTimeout(()=>btn.textContent=label,1500);
+  });
+}
+
+function st(type, msg) {
+  $dot.className = 'dot ' + type;
+  $status.textContent = msg;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
