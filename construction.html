@@ -16,7 +16,7 @@
   </div>
 
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">OBJECTIF</div>
+    <div class="panel-label">TARGET</div>
     <div class="craft-form">
       <div class="form-group">
         <label>Final item to craft</label>
@@ -48,9 +48,9 @@
 
   <div class="craft-result" id="craftResult">
 
-    <!-- Étape 4 : Produit final -->
+    <!-- Step 4: Final Product -->
     <div class="tier-block">
-      <div class="tier-title">ÉTAPE 4 — <span>FINAL PRODUCT</span></div>
+      <div class="tier-title">STEP 4 — <span>FINAL PRODUCT</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
           <span>Item</span><span style="text-align:right">To produce</span><span style="text-align:right">Stock</span>
@@ -61,7 +61,7 @@
 
     <!-- Étape 3 : Components -->
     <div class="tier-block">
-      <div class="tier-title">ÉTAPE 3 — <span>COMPONENTS TO CRAFT</span></div>
+      <div class="tier-title">STEP 3 — <span>COMPONENTS TO CRAFT</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
           <span>Component</span><span style="text-align:right">Needed → to craft</span><span style="text-align:right">Stock</span>
@@ -83,7 +83,7 @@
 
     <!-- Étape 2 : Intermediates -->
     <div class="tier-block">
-      <div class="tier-title">ÉTAPE 2 — <span>INTERMEDIATES TO REFINE</span></div>
+      <div class="tier-title">STEP 2 — <span>INTERMEDIATES TO REFINE</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
           <span>Intermediate</span><span style="text-align:right">To refine → produces</span><span style="text-align:right">Stock</span>
@@ -94,7 +94,7 @@
 
     <!-- Étape 1 : Matrixs to mine -->
     <div class="tier-block">
-      <div class="tier-title">ÉTAPE 1 — <span>MATRICES TO MINE</span></div>
+      <div class="tier-title">STEP 1 — <span>MATRICES TO MINE</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 80px 130px 110px">
           <span>Matrix</span><span>Asteroid</span><span style="text-align:right">To mine</span><span style="text-align:right">Stock</span>
@@ -105,7 +105,7 @@
 
     <!-- Plan of mining -->
     <div class="tier-block">
-      <div class="tier-title">🛸 PLAN DE MINAGE — <span>TRIPS REQUIRED</span></div>
+      <div class="tier-title">MINING OPERATIONS — <span>TRIPS REQUIRED</span></div>
       <div class="trip-grid" id="craftTrips"></div>
     </div>
 
@@ -230,7 +230,7 @@ function calcCraft() {
   if (Object.keys(r.byAsteroid).length === 0) {
     document.getElementById('craftTrips').innerHTML = `
       <div class="trip-card" style="border-left-color:var(--green)">
-        <div class="trip-asteroid">✓ COMPLET</div>
+        <div class="trip-asteroid">✓ STATUS: COMPLETE</div>
         <div class="trip-resource">Everything in stock!</div>
         <div class="trip-count">0</div>
         <div class="trip-label">trip needed</div>
