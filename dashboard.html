@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVE Frontier — Dashboard</title>
+  <title>EF Mining Planner — Dashboard</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,9 +15,9 @@
     <div style="display:flex;gap:8px">
       <button class="back-btn" onclick="refreshDashboard()"
               style="color:var(--accent);border-color:var(--accent)">
-        ⟳ Actualiser
+        ⟳ Refresh
       </button>
-      <a href="index.html" class="back-btn">← Retour</a>
+      <a href="index.html" class="back-btn">← Back</a>
     </div>
   </div>
 
@@ -27,7 +27,7 @@
   <!-- Status -->
   <div class="status-bar">
     <div class="dot" id="dashDot"></div>
-    <span id="dashStatus">En attente...</span>
+    <span id="dashStatus">Waiting...</span>
     <span id="dashBadge"></span>
   </div>
 
@@ -35,7 +35,7 @@
   <div id="dashContent">
     <div class="empty">
       <div class="icon">⬡</div>
-      <div>Sélectionne un personnage dans le <a href="index.html" style="color:var(--accent)">Registry</a></div>
+      <div>Select a character in the <a href="index.html" style="color:var(--accent)">Registry</a></div>
     </div>
   </div>
 
@@ -74,7 +74,7 @@ function restoreFromCache() {
     const cached = JSON.parse(sessionStorage.getItem('eve_ssu_cards') || '[]');
     if (cached.length > 0) {
       renderSSU(cached);
-      setStatus('dash', 'on', `${cached.length} SSU (cache)`);
+      setStatus('dash', 'on', `${cached.length} SSU (cached)`);
       document.getElementById('dashBadge').innerHTML =
         `<span class="badge">${cached.length} SSU</span>`;
       return;
@@ -90,7 +90,7 @@ async function loadDashboard() {
 
   const wallet = char.address;
   if (!wallet) {
-    setStatus('dash', 'err', 'Adresse introuvable');
+    setStatus('dash', 'err', 'Adresse not found');
     return;
   }
 
@@ -107,7 +107,7 @@ async function loadDashboard() {
   document.getElementById('dashContent').innerHTML = `
     <div class="empty">
       <div class="icon">⬡</div>
-      <div><span class="spin"></span>Interrogation de la blockchain...</div>
+      <div><span class="spin"></span>Querying blockchain...</div>
     </div>`;
 
   try {
@@ -121,18 +121,18 @@ async function loadDashboard() {
     if (ssuCards.length === 0) {
       setStatus('dash', 'on', 'Aucun SSU');
       document.getElementById('dashContent').innerHTML = `
-        <div class="empty"><div class="icon">⬡</div><div>Aucun Smart Storage Unit trouvé</div></div>`;
+        <div class="empty"><div class="icon">⬡</div><div>No Smart Storage Unit found</div></div>`;
       return;
     }
 
     renderSSU(ssuCards);
-    setStatus('dash', 'on', `${ssuCards.length} SSU chargés`);
+    setStatus('dash', 'on', `${ssuCards.length} SSU loaded`);
     document.getElementById('dashBadge').innerHTML =
       `<span class="badge">${ssuCards.length} SSU</span>`;
-    addLog(`✨ Synchronisation terminée — ${Object.keys(stock).length} types d'items trouvés.`);
+    addLog(`✨ Sync complete — ${Object.keys(stock).length} item types found.`);
 
   } catch(e) {
-    setStatus('dash', 'err', 'Erreur blockchain');
+    setStatus('dash', 'err', 'Blockchain error');
     addLog(`❌ ${e.message}`, '#f85149');
     document.getElementById('dashContent').innerHTML =
       `<div class="empty"><div class="icon">⬡</div><div>${e.message}</div></div>`;
@@ -156,7 +156,7 @@ function renderSSU(ssuCards) {
     ">${ssu.status || '?'}</span>`;
 
     const itemsHtml = ssu.items.length === 0
-      ? `<div class="ssu-empty">${isOnline ? 'Vide' : 'Hors ligne'}</div>`
+      ? `<div class="ssu-empty">${isOnline ? 'Empty' : 'Offline'}</div>`
       : ssu.items
           .sort((a, b) => b.qty - a.qty)
           .map(it => `
