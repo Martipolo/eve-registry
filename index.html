@@ -580,7 +580,7 @@ async function loadDashboard(char) {
       ]);
       const pageData = page.result?.data || [];
       allObjects = allObjects.concat(pageData);
-      addLog(`  page ${safetyCount}: ${pageData.length} objets (total: ${allObjects.length})`);
+
       // Stop si : pas de page suivante, pas de curseur, ou page vide
       const nextCursor = page.result?.nextCursor;
       const hasNext    = page.result?.hasNextPage === true;
@@ -620,43 +620,22 @@ async function loadDashboard(char) {
         const typeId    = fields.type_id || '';
         addLog(`✓ ${ssuName} [${statusVar}]`);
 
-        // Log de debug : voir les clés disponibles dans fields
-        addLog(`  fields keys: ${Object.keys(fields).join(', ')}`, '#58a6ff');
-
         let items = [];
         let usedCap = 0;
         let maxCap = 2000000;
 
-        // Lire les dynamic fields du SSU — c'est là que sont les inventaires
+        // Lire les dynamic fields du SSU — chaque SSU a 2 inventaires
         const dfRes  = await callSui("suix_getDynamicFields", [ssuId]);
         const dfList = dfRes.result?.data || [];
-        addLog(`  dynamic fields: ${dfList.length} trouvés`, '#58a6ff');
 
-        // Log chaque dynamic field pour debug
-        dfList.forEach((df, i) => {
-          addLog(`  df[${i}] name.type=${df.name?.type} name.value=${JSON.stringify(df.name?.value)?.slice(0,30)} objectType=${df.objectType?.slice(0,40)}`, '#888');
-        });
-
-        // Stratégie : prendre TOUS les dynamic fields dont le type contient "Inventory"
-        const invDfs = dfList.filter(f => f.objectType?.includes('inventory::Inventory'));
-        // Si aucun par type, fallback sur le champ dont le name.value = cap.data.objectId
-        const dfsToRead = invDfs.length > 0
-          ? invDfs
-          : dfList.filter(f => f.name?.value === cap.data.objectId);
-
-        addLog(`  → ${dfsToRead.length} inventaire(s) à lire`, '#7ee787');
-
-        for (const df of dfsToRead) {
+        for (const df of dfList) {
           const invObj = await callSui("sui_getObject", [df.objectId, { showContent: true }]);
           const raw = invObj.result?.data?.content?.fields;
           if (!raw) continue;
-
-          // L'inventaire peut être dans raw directement ou dans raw.value.fields
           const inv = raw.value?.fields || raw;
           usedCap += parseInt(inv.used_capacity || '0');
           maxCap   = parseInt(inv.max_capacity  || '2000000');
           const contents = inv.items?.fields?.contents || [];
-          addLog(`  inventaire: ${contents.length} items, used=${inv.used_capacity}`, '#58a6ff');
           for (const item of contents) {
             const d = item.fields?.value?.fields;
             if (!d) continue;
