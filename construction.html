@@ -232,17 +232,25 @@ function calcCraft() {
 
   // ── Étape 3 : Components ─────────────────────────────────────
   document.getElementById('craftComponents').innerHTML =
-    Object.entries(r.composants).map(([name, d]) => `
-      <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
-        <div class="mat-name">${esc(name)}</div>
-        <div class="mat-qty need">
-          ${d.needed}
-          ${d.batches > 0
-            ? `<span style="font-size:9px;color:var(--text3)"> → craft ${d.toCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
-            : `<span style="font-size:9px;color:var(--green)"> ✓ stock OK</span>`}
-        </div>
-        <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
-      </div>`).join('');
+    Object.entries(r.composants).map(([name, d]) => {
+      const inputsDetail = d.batches > 0 && d.rec
+        ? d.rec.inputs.map(inp =>
+            `<span style="color:var(--gold2);font-weight:bold">${(inp.qty * d.batches).toLocaleString()}</span> × ${esc(inp.name)}`
+          ).join(' &nbsp;+&nbsp; ')
+        : '';
+      return `
+        <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
+          <div class="mat-name">${esc(name)}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
+            ${d.batches > 0
+              ? `<span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700">Craft ${d.toCraft} units</span>
+                 <span style="color:var(--text3);font-size:10px"> using</span>
+                 <div style="color:var(--text2);margin-top:2px;font-size:10px">${inputsDetail}</div>`
+              : `<span style="color:var(--green);font-size:13px">✓ Stock sufficient</span>`}
+          </div>
+          <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
+        </div>`;
+    }).join('');
 
   // ── Matières brutes ──────────────────────────────────────────
   document.getElementById('craftMatieres').innerHTML =
