@@ -2,7 +2,7 @@
 
 > An unofficial web tool for **EVE Frontier** players — built on-chain data from the Sui blockchain.
 
-🌐 **Live app:** [martipolo.github.io/ef-mining-planner](https://martipolo.github.io/ef-mining-planner)
+🌐 **Live app:** [https://martipolo.github.io/EF-Mining-Planner/](https://martipolo.github.io/EF-Mining-Planner/)
 
 ---
 
@@ -157,4 +157,4 @@ EVE Frontier is a trademark of CCP hf.
 
 ---
 
-*Built by [Ekno](https://martipolo.github.io/ef-mining-planner/?q=Ekno) — EVE Frontier player*
+*Built by [Ekno](https://martipolo.github.io/EF-Mining-Planner/?q=Ekno) — EVE Frontier player*
