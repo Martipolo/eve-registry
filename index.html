@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVE Frontier — Registry</title>
+  <title>EF Mining Planner — Registry</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -40,27 +40,27 @@
     </div>
     <div style="margin-top:14px">
       <a href="dashboard.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center">
-        ⬡ Ouvrir le Dashboard →
+        ⬡ Open Dashboard →
       </a>
     </div>
   </div>
 
   <!-- Recherche -->
-  <div class="panel cut">
+  <div class="panel cut" style="padding-top:28px">
     <div class="panel-label">SEARCH</div>
     <div class="search-row">
       <div class="input-wrap">
-        <input type="text" id="regSearch" placeholder="Filtrer par nom ou ID..."
+        <input type="text" id="regSearch" placeholder="Filter by name or ID..."
                autocomplete="off" spellcheck="false"/>
       </div>
     </div>
-    <p class="hint">// données chargées depuis database.json — mis à jour quotidiennement</p>
+    <p class="hint">// data loaded from database.json — updated daily via GitHub Actions</p>
   </div>
 
   <!-- Status -->
   <div class="status-bar">
     <div class="dot" id="regDot"></div>
-    <span id="regStatus">Chargement...</span>
+    <span id="regStatus">Loading...</span>
     <span id="regBadge"></span>
   </div>
 
@@ -68,13 +68,13 @@
   <div id="regResults">
     <div class="empty">
       <div class="icon">◈</div>
-      <div><span class="spin"></span>Connexion à la blockchain...</div>
+      <div><span class="spin"></span>Connecting to blockchain...</div>
     </div>
   </div>
 
   <footer>
-    <div>Source: <span>database.json</span> — mis à jour quotidiennement via GitHub Actions</div>
-    <div>Blockchain: <span>Sui Testnet</span> | Package: <span>EVE World v0.0.18</span></div>
+    <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span></div>
+    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
   </footer>
 
 </div>
@@ -97,7 +97,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── Chargement database.json ──────────────────────────────────────
 async function loadRegistry() {
-  setStatus('reg', 'loading', 'Chargement...');
+  setStatus('reg', 'loading', 'Loading...');
   try {
     const r = await fetch('database.json');
     if (!r.ok) throw new Error('database.json introuvable');
@@ -137,7 +137,7 @@ function filterReg() {
 function renderReg(chars) {
   if (!chars.length) {
     document.getElementById('regResults').innerHTML =
-      `<div class="empty"><div class="icon">◈</div><div>Aucun résultat</div></div>`;
+      `<div class="empty"><div class="icon">◈</div><div>No results found</div></div>`;
     return;
   }
   const rows = chars.map((c, i) => `
