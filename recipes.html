@@ -12,7 +12,20 @@
   <div class="page-header">
     <div class="logo-sym"></div>
     <h1>Recettes</h1>
-    <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER <span>///</span> <span>T0 → T3</span></p>
+    <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
+  </div>
+
+  <!-- Légende du flux -->
+  <div class="panel cut" style="margin-bottom:28px">
+    <div class="panel-label">FLUX DE PRODUCTION</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2.2;color:var(--text3)">
+      <span style="color:var(--gold)">ASTÉROÏDE</span>
+      → miner <span style="color:var(--gold)">Matrice brute (T0_RAW)</span>
+      → raffiner → <span style="color:var(--blue)">Intermédiaire (T1)</span>
+      → raffiner → <span style="color:var(--text2)">Matière raffinée (T0_MATS)</span>
+      → crafter → <span style="color:var(--accent)">Composant (T2)</span>
+      → crafter → <span style="color:#fff">Produit final (T3)</span>
+    </div>
   </div>
 
   <div id="recipesContent"></div>
@@ -22,123 +35,116 @@
 <script src="nav.js"></script>
 <script src="recipes.js"></script>
 <script>
-// ── Init ──────────────────────────────────────────────────────────
 injectNav('recipes');
 window.addEventListener('DOMContentLoaded', renderRecipes);
 
-// ── Rendu ─────────────────────────────────────────────────────────
 function renderRecipes() {
   const container = document.getElementById('recipesContent');
 
-  const blockHeader = (title, color) =>
-    `<div class="tier-title" style="margin-bottom:12px;color:${color}">${title}</div>`;
-
-  const inputTable = (inputs) => `
-    <div class="tbl-head" style="grid-template-columns:1fr 100px">
-      <span>Input</span><span style="text-align:right">Quantité</span>
-    </div>
-    ${inputs.map(i => `
-      <div class="mat-row" style="grid-template-columns:1fr 100px">
-        <div class="mat-name">${esc(i.name)}</div>
-        <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-      </div>`).join('')}`;
-
-  const recipeCard = (title, subtitle, color, body) => `
-    <div style="margin-bottom:20px">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
-        padding:8px 14px;background:var(--bg3);
-        border-left:3px solid ${color};margin-bottom:8px;
-        display:flex;justify-content:space-between;align-items:center">
-        <span style="color:#fff;letter-spacing:1px">${title}</span>
-        <span style="color:var(--text3);font-size:9px">${subtitle}</span>
-      </div>
-      ${body}
-    </div>`;
+  const sectionHeader = (label, color) =>
+    `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+      padding:8px 14px;background:var(--bg3);
+      border-left:3px solid ${color};margin-bottom:8px;
+      display:flex;justify-content:space-between;align-items:center;color:#fff">`;
 
   let html = '';
 
   // ════════════════════════════════════════════════════════════════
-  // TIER 3 — Produits finis
-  // ════════════════════════════════════════════════════════════════
+  // T3 — Produits finis
   html += `<div class="panel cut" style="margin-bottom:24px">
     <div class="panel-label">TIER 3 — PRODUITS FINIS</div>`;
-
   for (const [, rec] of Object.entries(RECIPES)) {
-    html += recipeCard(
-      `⚙ ${esc(rec.name)}`,
-      `${rec.batch} unités / batch — via ${esc(rec.machine)}`,
-      'var(--accent)',
-      inputTable(rec.inputs)
-    );
-  }
-  html += `</div>`;
-
-  // ════════════════════════════════════════════════════════════════
-  // TIER 2 — Intermédiaires
-  // ════════════════════════════════════════════════════════════════
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 2 — INTERMÉDIAIRES</div>`;
-
-  for (const [name, rec] of Object.entries(T2_RECIPES)) {
-    html += recipeCard(
-      `🔧 ${esc(name)}`,
-      `${rec.batch} unités / batch — via ${esc(rec.machine)}`,
-      'var(--blue)',
-      inputTable(rec.inputs)
-    );
-  }
-  html += `</div>`;
-
-  // ════════════════════════════════════════════════════════════════
-  // TIER 1 — Raffinés
-  // ════════════════════════════════════════════════════════════════
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 1 — RAFFINÉS</div>`;
-
-  for (const [name, rec] of Object.entries(T1_RECIPES)) {
-    const outputTable = `
-      <div class="tbl-head" style="grid-template-columns:1fr 100px">
-        <span>Output obtenu</span><span style="text-align:right">Quantité</span>
-      </div>
-      ${rec.outputs.map(o => `
-        <div class="mat-row" style="grid-template-columns:1fr 100px">
-          <div class="mat-name">${esc(o.name)}</div>
-          <div class="mat-qty ok" style="text-align:right">${o.qty}</div>
-        </div>`).join('')}`;
-    html += recipeCard(
-      `⚗ ${esc(name)}`,
-      `${rec.batch} unités raffinées → via ${esc(rec.machine)}`,
-      'var(--gold)',
-      outputTable
-    );
-  }
-  html += `</div>`;
-
-  // ════════════════════════════════════════════════════════════════
-  // TIER 0 — Matrices minées (astéroïdes)
-  // ════════════════════════════════════════════════════════════════
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 0 — MATRICES D'ASTÉROÏDES</div>
-    <div class="tbl-head" style="grid-template-columns:1fr 80px 200px 60px">
-      <span>Matrice minée</span>
-      <span>Astéroïde</span>
-      <span>Outputs (40 unités minées)</span>
-      <span style="text-align:right">Vol./u</span>
-    </div>`;
-
-  for (const [name, rec] of Object.entries(T0_RECIPES)) {
-    const outputs = rec.outputs.map(o => `${o.qty}× ${esc(o.name)}`).join('<br>');
     html += `
-      <div class="mat-row" style="grid-template-columns:1fr 80px 200px 60px;align-items:start;padding:10px 14px">
-        <div class="mat-name">${esc(name)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold)">${esc(rec.asteroid)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);line-height:1.8">${outputs}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right">${rec.volume}</div>
+      <div style="margin-bottom:16px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);
+          display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#fff">⚙ ${esc(rec.name)}</span>
+          <span style="color:var(--text3);font-size:9px">${rec.batch} unités / batch — via ${esc(rec.machine)}</span>
+        </div>
+        <div class="tbl-head" style="grid-template-columns:1fr 100px">
+          <span>Composant requis</span><span style="text-align:right">Quantité</span>
+        </div>
+        ${rec.inputs.map(i => `
+          <div class="mat-row" style="grid-template-columns:1fr 100px">
+            <div class="mat-name">${esc(i.name)}</div>
+            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
+          </div>`).join('')}
       </div>`;
   }
   html += `</div>`;
 
+  // ════════════════════════════════════════════════════════════════
+  // T2 — Composants intermédiaires
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 2 — COMPOSANTS INTERMÉDIAIRES</div>`;
+  for (const [name, rec] of Object.entries(T2_RECIPES)) {
+    html += `
+      <div style="margin-bottom:16px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);
+          display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#fff">🔧 ${esc(name)}</span>
+          <span style="color:var(--text3);font-size:9px">${rec.batch} unités / batch — via ${esc(rec.machine)}</span>
+        </div>
+        <div class="tbl-head" style="grid-template-columns:1fr 100px">
+          <span>Matière raffinée requise</span><span style="text-align:right">Quantité</span>
+        </div>
+        ${rec.inputs.map(i => `
+          <div class="mat-row" style="grid-template-columns:1fr 100px">
+            <div class="mat-name">${esc(i.name)}</div>
+            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+  html += `</div>`;
 
+  // ════════════════════════════════════════════════════════════════
+  // T1 — Matières intermédiaires (raffinage → produit des T0_MATS)
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 1 — MATIÈRES INTERMÉDIAIRES (RAFFINAGE)</div>`;
+  for (const [name, rec] of Object.entries(T1_RECIPES)) {
+    html += `
+      <div style="margin-bottom:16px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--blue);
+          display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#fff">⚗ ${esc(name)}</span>
+          <span style="color:var(--text3);font-size:9px">${rec.batch} unités raffinées → via ${esc(rec.machine)}</span>
+        </div>
+        <div class="tbl-head" style="grid-template-columns:1fr 100px">
+          <span>Output produit</span><span style="text-align:right">Quantité</span>
+        </div>
+        ${rec.outputs.map(o => `
+          <div class="mat-row" style="grid-template-columns:1fr 100px">
+            <div class="mat-name">${esc(o.name)}</div>
+            <div class="mat-qty ok" style="text-align:right">${o.qty}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+  html += `</div>`;
+
+  // ════════════════════════════════════════════════════════════════
+  // T0_RAW — Matrices brutes (minées, raffinent en T1)
+  const astColors = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 0 — MATRICES BRUTES (ASTÉROÏDES)</div>
+    <div class="tbl-head" style="grid-template-columns:1fr 80px 200px 60px">
+      <span>Matrice</span><span>Astéroïde</span><span>Outputs (40 unités minées)</span><span style="text-align:right">Vol./u</span>
+    </div>`;
+  for (const [name, rec] of Object.entries(T0_RAW_RECIPES)) {
+    const c = astColors[rec.asteroid] || 'var(--text3)';
+    html += `
+      <div class="mat-row" style="grid-template-columns:1fr 80px 200px 60px;align-items:start;padding:10px 14px">
+        <div class="mat-name">${esc(name)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${c}">${esc(rec.asteroid)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);line-height:1.8">
+          ${rec.outputs.map(o => `${o.qty}× ${esc(o.name)}`).join('<br>')}
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right">${rec.volume}</div>
+      </div>`;
+  }
+  html += `</div>`;
 
   container.innerHTML = html;
 }
