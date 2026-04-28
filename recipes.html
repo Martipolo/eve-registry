@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EVE Frontier — Recettes</title>
+  <title>EF Mining Planner — Recipes</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,13 +11,13 @@
 
   <div class="page-header">
     <div class="logo-sym"></div>
-    <h1>Recettes</h1>
+    <h1>Recipes</h1>
     <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
   </div>
 
   <!-- Flux visuel -->
   <div class="panel cut" style="margin-bottom:28px">
-    <div class="panel-label">FLUX DE PRODUCTION</div>
+    <div class="panel-label">PRODUCTION FLOW</div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2.4;color:var(--text3)">
       <span style="color:var(--gold)">① MINER</span> Matrices brutes (SLAG / COMET / CHAR)
       &nbsp;→&nbsp; <span style="color:var(--blue)">② RAFFINER</span> Intermédiaires (Silica Grains, Iron-Rich Nodules, Hydrocarbon Residue)
@@ -66,21 +66,21 @@ function renderRecipes() {
   // ── Étape 4 : Produit final ──────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 4 — PRODUIT FINAL</div>`;
   for (const [, rec] of Object.entries(RECIPES)) {
-    html += card('⚙', rec.name, `${rec.batch} unités / batch — via ${rec.machine}`, 'var(--accent)',
-      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Composants requis'));
+    html += card('⚙', rec.name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Required components'));
   }
   html += `</div>`;
 
   // ── Étape 3 : Composants ─────────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 3 — COMPOSANTS À CRAFTER</div>`;
   for (const [name, rec] of Object.entries(COMPOSANTS)) {
-    html += card('🔧', name, `${rec.batch} unités / batch — via ${rec.machine}`, 'var(--accent)',
-      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Matières brutes requises'));
+    html += card('🔧', name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Required raw materials'));
   }
   html += `</div>`;
 
   // ── Étape 2 : Intermédiaires ─────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 2 — INTERMÉDIAIRES (RAFFINAGE)</div>`;
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 2 — INTERMEDIATES (REFINING)</div>`;
   for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
     html += card('⚗', name, `${rec.batch} unités → via ${rec.machine}`, 'var(--blue)',
       ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), 'Matières brutes produites'));
@@ -88,9 +88,9 @@ function renderRecipes() {
   html += `</div>`;
 
   // ── Étape 1 : Matrices brutes ─────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 1 — MATRICES BRUTES (ASTÉROÏDES)</div>
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 1 — MATRICES BRUTES (ASTEROIDS)</div>
     <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
-      <span>Matrice</span><span>Astéroïde</span><span>Outputs (40 unités minées)</span><span style="text-align:right">Vol./u</span>
+      <span>Matrice</span><span>Astéroïde</span><span>Outputs (40 units mined)</span><span style="text-align:right">Vol./u</span>
     </div>`;
   for (const [name, rec] of Object.entries(MATRICES)) {
     const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
