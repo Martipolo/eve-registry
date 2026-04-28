@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVE Frontier — Recettes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <div class="logo-sym"></div>
+    <h1>Recettes</h1>
+    <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER <span>///</span> <span>T0 → T3</span></p>
+  </div>
+
+  <div id="recipesContent"></div>
+
+</div>
+
+<script src="nav.js"></script>
+<script src="recipes.js"></script>
+<script>
+// ── Init ──────────────────────────────────────────────────────────
+injectNav('recipes');
+window.addEventListener('DOMContentLoaded', renderRecipes);
+
+// ── Rendu ─────────────────────────────────────────────────────────
+function renderRecipes() {
+  const container = document.getElementById('recipesContent');
+
+  const blockHeader = (title, color) =>
+    `<div class="tier-title" style="margin-bottom:12px;color:${color}">${title}</div>`;
+
+  const inputTable = (inputs) => `
+    <div class="tbl-head" style="grid-template-columns:1fr 100px">
+      <span>Input</span><span style="text-align:right">Quantité</span>
+    </div>
+    ${inputs.map(i => `
+      <div class="mat-row" style="grid-template-columns:1fr 100px">
+        <div class="mat-name">${esc(i.name)}</div>
+        <div class="mat-qty need" style="text-align:right">${i.qty}</div>
+      </div>`).join('')}`;
+
+  const recipeCard = (title, subtitle, color, body) => `
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+        padding:8px 14px;background:var(--bg3);
+        border-left:3px solid ${color};margin-bottom:8px;
+        display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#fff;letter-spacing:1px">${title}</span>
+        <span style="color:var(--text3);font-size:9px">${subtitle}</span>
+      </div>
+      ${body}
+    </div>`;
+
+  let html = '';
+
+  // ════════════════════════════════════════════════════════════════
+  // TIER 3 — Produits finis
+  // ════════════════════════════════════════════════════════════════
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 3 — PRODUITS FINIS</div>`;
+
+  for (const [, rec] of Object.entries(RECIPES)) {
+    html += recipeCard(
+      `⚙ ${esc(rec.name)}`,
+      `${rec.batch} unités / batch — via ${esc(rec.machine)}`,
+      'var(--accent)',
+      inputTable(rec.inputs)
+    );
+  }
+  html += `</div>`;
+
+  // ════════════════════════════════════════════════════════════════
+  // TIER 2 — Intermédiaires
+  // ════════════════════════════════════════════════════════════════
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 2 — INTERMÉDIAIRES</div>`;
+
+  for (const [name, rec] of Object.entries(T2_RECIPES)) {
+    html += recipeCard(
+      `🔧 ${esc(name)}`,
+      `${rec.batch} unités / batch — via ${esc(rec.machine)}`,
+      'var(--blue)',
+      inputTable(rec.inputs)
+    );
+  }
+  html += `</div>`;
+
+  // ════════════════════════════════════════════════════════════════
+  // TIER 1 — Raffinés
+  // ════════════════════════════════════════════════════════════════
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 1 — RAFFINÉS</div>`;
+
+  for (const [name, rec] of Object.entries(T1_RECIPES)) {
+    html += recipeCard(
+      `⚗ ${esc(name)}`,
+      `${rec.batch} unités / batch — via ${esc(rec.machine)}`,
+      'var(--gold)',
+      inputTable(rec.inputs)
+    );
+  }
+  html += `</div>`;
+
+  // ════════════════════════════════════════════════════════════════
+  // TIER 0 — Matrices minées (astéroïdes)
+  // ════════════════════════════════════════════════════════════════
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">TIER 0 — MATRICES D'ASTÉROÏDES</div>
+    <div class="tbl-head" style="grid-template-columns:1fr 80px 200px 60px">
+      <span>Matrice minée</span>
+      <span>Astéroïde</span>
+      <span>Outputs (40 unités minées)</span>
+      <span style="text-align:right">Vol./u</span>
+    </div>`;
+
+  for (const [name, rec] of Object.entries(T0_RECIPES)) {
+    const outputs = rec.outputs.map(o => `${o.qty}× ${esc(o.name)}`).join('<br>');
+    html += `
+      <div class="mat-row" style="grid-template-columns:1fr 80px 200px 60px;align-items:start;padding:10px 14px">
+        <div class="mat-name">${esc(name)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold)">${esc(rec.asteroid)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);line-height:1.8">${outputs}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right">${rec.volume}</div>
+      </div>`;
+  }
+  html += `</div>`;
+
+  // ════════════════════════════════════════════════════════════════
+  // Sources des minerais bruts
+  // ════════════════════════════════════════════════════════════════
+  html += `<div class="panel cut" style="margin-bottom:24px">
+    <div class="panel-label">SOURCES — MINERAIS BRUTS PAR ASTÉROÏDE</div>
+    <div class="tbl-head" style="grid-template-columns:1fr 80px 60px">
+      <span>Minerai</span><span>Astéroïde</span><span style="text-align:right">Volume</span>
+    </div>`;
+
+  // Grouper par astéroïde
+  const byAst = {};
+  for (const [name, src] of Object.entries(T0_SOURCES)) {
+    if (!byAst[src.asteroid]) byAst[src.asteroid] = [];
+    byAst[src.asteroid].push({ name, ...src });
+  }
+  const astColors = { SLAG: 'var(--accent)', COMET: 'var(--blue)', CHAR: 'var(--gold)' };
+
+  for (const [ast, items] of Object.entries(byAst)) {
+    html += `<div style="background:var(--bg3);padding:4px 14px;
+      font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;
+      color:${astColors[ast]||'var(--text3)'};margin-top:8px">
+      ◈ ${ast}
+    </div>`;
+    for (const it of items) {
+      html += `
+        <div class="mat-row" style="grid-template-columns:1fr 80px 60px">
+          <div class="mat-name" style="padding-left:8px">${esc(it.name)}</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${astColors[ast]||'var(--text3)'}">
+            ${esc(ast)}
+          </div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right">
+            ${it.volume}
+          </div>
+        </div>`;
+    }
+  }
+  html += `</div>`;
+
+  container.innerHTML = html;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVE Frontier — Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-title" id="dashTitle">Dashboard</div>
+    <div style="display:flex;gap:8px">
+      <button class="back-btn" onclick="refreshDashboard()"
+              style="color:var(--accent);border-color:var(--accent)">
+        ⟳ Actualiser
+      </button>
+      <a href="index.html" class="back-btn">← Retour</a>
+    </div>
+  </div>
+
+  <!-- Log panel -->
+  <div id="dashLog" class="log-panel" style="display:none"></div>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div class="dot" id="dashDot"></div>
+    <span id="dashStatus">En attente...</span>
+    <span id="dashBadge"></span>
+  </div>
+
+  <!-- Contenu SSU -->
+  <div id="dashContent">
+    <div class="empty">
+      <div class="icon">⬡</div>
+      <div>Sélectionne un personnage dans le <a href="index.html" style="color:var(--accent)">Registry</a></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="nav.js"></script>
+<script src="sui.js"></script>
+<script>
+// ── Init ──────────────────────────────────────────────────────────
+injectNav('dashboard');
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (!window.selChar) return; // pas de perso sélectionné
+
+  document.getElementById('dashTitle').textContent =
+    window.selChar.name.toUpperCase() + ' — STOCKAGE';
+
+  // Charger seulement si pas déjà en cache
+  if (NAV.isDashLoaded()) {
+    restoreFromCache();
+  } else {
+    loadDashboard();
+  }
+});
+
+// ── Bouton Actualiser ─────────────────────────────────────────────
+function refreshDashboard() {
+  NAV.setDashLoaded(false);
+  sessionStorage.removeItem('eve_ssu_cards');
+  loadDashboard();
+}
+
+// ── Restaurer depuis le cache sessionStorage ──────────────────────
+function restoreFromCache() {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem('eve_ssu_cards') || '[]');
+    if (cached.length > 0) {
+      renderSSU(cached);
+      setStatus('dash', 'on', `${cached.length} SSU (cache)`);
+      document.getElementById('dashBadge').innerHTML =
+        `<span class="badge">${cached.length} SSU</span>`;
+      return;
+    }
+  } catch(e) {}
+  loadDashboard(); // cache vide → recharger
+}
+
+// ── Scan complet ──────────────────────────────────────────────────
+async function loadDashboard() {
+  const char = window.selChar;
+  if (!char) return;
+
+  const wallet = char.address;
+  if (!wallet) {
+    setStatus('dash', 'err', 'Adresse introuvable');
+    return;
+  }
+
+  const logEl = document.getElementById('dashLog');
+  logEl.style.display = 'block';
+  logEl.innerHTML = '';
+
+  const addLog = (msg, col = '#7ee787') => {
+    logEl.innerHTML += `> <span style="color:${col}">${msg}</span>\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  };
+
+  setStatus('dash', 'loading', `Scan de ${char.name}...`);
+  document.getElementById('dashContent').innerHTML = `
+    <div class="empty">
+      <div class="icon">⬡</div>
+      <div><span class="spin"></span>Interrogation de la blockchain...</div>
+    </div>`;
+
+  try {
+    const { ssuCards, stock } = await scanSSU(wallet, addLog);
+
+    // Sauvegarder en session
+    NAV.saveStock(stock);
+    NAV.setDashLoaded(true);
+    sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
+
+    if (ssuCards.length === 0) {
+      setStatus('dash', 'on', 'Aucun SSU');
+      document.getElementById('dashContent').innerHTML = `
+        <div class="empty"><div class="icon">⬡</div><div>Aucun Smart Storage Unit trouvé</div></div>`;
+      return;
+    }
+
+    renderSSU(ssuCards);
+    setStatus('dash', 'on', `${ssuCards.length} SSU chargés`);
+    document.getElementById('dashBadge').innerHTML =
+      `<span class="badge">${ssuCards.length} SSU</span>`;
+    addLog(`✨ Synchronisation terminée — ${Object.keys(stock).length} types d'items trouvés.`);
+
+  } catch(e) {
+    setStatus('dash', 'err', 'Erreur blockchain');
+    addLog(`❌ ${e.message}`, '#f85149');
+    document.getElementById('dashContent').innerHTML =
+      `<div class="empty"><div class="icon">⬡</div><div>${e.message}</div></div>`;
+  }
+}
+
+// ── Rendu des cartes SSU ──────────────────────────────────────────
+function renderSSU(ssuCards) {
+  const grid = document.createElement('div');
+  grid.className = 'ssu-grid';
+
+  for (const ssu of ssuCards) {
+    const isOnline = ssu.status === 'ONLINE';
+    const pct      = ssu.maxCap > 0 ? Math.round(ssu.usedCap / ssu.maxCap * 100) : 0;
+
+    const statusBadge = `<span style="
+      font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;
+      padding:2px 7px;border:1px solid ${isOnline ? 'var(--green)' : 'var(--text3)'};
+      color:${isOnline ? 'var(--green)' : 'var(--text3)'};
+      margin-left:8px;vertical-align:middle;
+    ">${ssu.status || '?'}</span>`;
+
+    const itemsHtml = ssu.items.length === 0
+      ? `<div class="ssu-empty">${isOnline ? 'Vide' : 'Hors ligne'}</div>`
+      : ssu.items
+          .sort((a, b) => b.qty - a.qty)
+          .map(it => `
+            <div class="item-row">
+              <span class="item-name">${esc(it.name)}</span>
+              <span class="item-qty">${it.qty.toLocaleString()}</span>
+            </div>`).join('');
+
+    const div = document.createElement('div');
+    div.className  = 'ssu-card';
+    div.style.opacity = isOnline ? '1' : '0.6';
+    div.innerHTML = `
+      <div class="ssu-card-header">
+        <div class="ssu-card-name">${esc(ssu.name)}${statusBadge}</div>
+        <div class="ssu-card-id">${ssu.id.slice(0, 20)}...</div>
+      </div>
+      <div class="ssu-cap-bar">
+        <div class="ssu-cap-fill"
+             style="width:${pct}%;background:${isOnline ? '' : 'var(--text3)'}">
+        </div>
+      </div>
+      <div class="ssu-cap-text">
+        ${ssu.usedCap.toLocaleString()} / ${ssu.maxCap.toLocaleString()} unités (${pct}%)
+      </div>
+      ${itemsHtml}`;
+    grid.appendChild(div);
+  }
+
+  document.getElementById('dashContent').innerHTML = '';
+  document.getElementById('dashContent').appendChild(grid);
+}
+</script>
+</body>
+</html>
