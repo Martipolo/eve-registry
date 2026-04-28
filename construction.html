@@ -21,8 +21,14 @@
       <div class="form-group">
         <label>Final item to craft</label>
         <select id="craftItem">
-          <option value="building_foam">Building Foam</option>
-          <option value="reinforced_alloys">Reinforced Alloys</option>
+          <optgroup label="Final Products">
+            <option value="building_foam">Building Foam</option>
+          </optgroup>
+          <optgroup label="Components">
+            <option value="reinforced_alloys">Reinforced Alloys</option>
+            <option value="carbon_weave">Carbon Weave</option>
+            <option value="thermal_composites">Thermal Composites</option>
+          </optgroup>
         </select>
       </div>
       <div class="form-group">
@@ -99,7 +105,7 @@
 
     <!-- Plan of mining -->
     <div class="tier-block">
-      <div class="tier-title">🛸 MINING PLAN — <span>TRIPS REQUIRED</span></div>
+      <div class="tier-title">🛸 PLAN DE MINAGE — <span>TRIPS REQUIRED</span></div>
       <div class="trip-grid" id="craftTrips"></div>
     </div>
 
@@ -132,7 +138,19 @@ function calcCraft() {
   document.getElementById('craftResult').classList.add('visible');
 
   // ── Étape 4 : Produit final ──────────────────────────────────
-  document.getElementById('craftFinal').innerHTML = `
+  const isSelf = !!r.final.isSelfCraft || (r.final.toCraft !== undefined);
+  const finalStockCls = r.final.inStock >= r.final.needed ? 'ok' : r.final.inStock > 0 ? 'partial' : 'need';
+  document.getElementById('craftFinal').innerHTML = isSelf ? `
+    <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
+      <div class="mat-name">${esc(r.final.name)}</div>
+      <div class="mat-qty need">
+        ${r.final.needed} wanted
+        <span style="font-size:9px;color:var(--text3);display:block">
+          → craft ${r.final.toCraft} (${r.final.batches} batch${r.final.batches>1?'es':''})
+        </span>
+      </div>
+      <div class="mat-qty ${finalStockCls}">${stk(r.final.inStock || 0)}</div>
+    </div>` : `
     <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
       <div class="mat-name">${esc(r.final.name)}</div>
       <div class="mat-qty need">
