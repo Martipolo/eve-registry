@@ -16,7 +16,7 @@
   </div>
 
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">TARGET</div>
+    <div class="panel-label">OBJECTIF</div>
     <div class="craft-form">
       <div class="form-group">
         <label>Final item to craft</label>
@@ -41,14 +41,21 @@
       <label>Cargo capacity (units):</label>
       <input type="number" id="craftSoute" value="990" min="1" style="width:120px;padding-left:12px">
     </div>
-    <p class="hint" style="margin-top:8px" id="stockHint">
-      // connect via the registry to see your live stock
-    </p>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
+      <p class="hint" id="stockHint">// connect via the registry to see your live stock</p>
+      <div id="refreshStockWrap" style="display:none;align-items:center;gap:10px">
+        <span id="refreshStockStatus" style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3)"></span>
+        <button class="btn" id="refreshStockBtn" onclick="refreshStock()"
+          style="height:34px;padding:0 16px;font-size:11px;letter-spacing:2px">
+          ⟳ Refresh Stock
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="craft-result" id="craftResult">
 
-    <!-- Step 4: Final Product -->
+    <!-- Étape 4 : Produit final -->
     <div class="tier-block">
       <div class="tier-title">STEP 4 — <span>FINAL PRODUCT</span></div>
       <div class="panel" style="padding:14px">
@@ -113,15 +120,78 @@
 </div>
 
 <script src="nav.js"></script>
+<script src="sui.js"></script>
 <script src="recipes.js"></script>
 <script>
 injectNav('construction');
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (window.selChar)
+  if (window.selChar) {
     document.getElementById('stockHint').innerHTML =
       `// stocks of <span style="color:var(--accent)">${esc(window.selChar.name)}</span> taken into account`;
+    document.getElementById('refreshStockWrap').style.display = 'flex';
+    // Afficher le nombre d'items déjà en mémoire
+    const count = Object.keys(window.ssuStock || {}).length;
+    if (count > 0) {
+      const statusEl = document.getElementById('refreshStockStatus');
+      statusEl.textContent = `${count} item types in memory`;
+    }
+  }
 });
+
+// ── Refresh stock sans quitter la page ───────────────────────────
+async function refreshStock() {
+  if (!window.selChar) return;
+  const btn      = document.getElementById('refreshStockBtn');
+  const statusEl = document.getElementById('refreshStockStatus');
+  btn.disabled = true;
+  btn.textContent = '⟳ Scanning...';
+  statusEl.style.color = 'var(--text3)';
+  statusEl.textContent = 'Querying blockchain...';
+
+  // Récupérer la sélection SSU depuis sessionStorage (faite dans le dashboard)
+  const savedSel  = sessionStorage.getItem('eve_ssu_selection');
+  const selectedIds = savedSel ? JSON.parse(savedSel) : null;
+
+  try {
+    const { ssuCards, stock: fullStock } = await scanSSU(window.selChar.address, () => {});
+
+    // Appliquer la sélection SSU précédente
+    const newStock = {};
+    let selCount = 0;
+    for (const ssu of ssuCards) {
+      const isSelected = !selectedIds || selectedIds.includes(ssu.id);
+      if (!isSelected) continue;
+      selCount++;
+      for (const item of ssu.items) {
+        newStock[item.name] = (newStock[item.name] || 0) + item.qty;
+      }
+    }
+
+    // Sauvegarder
+    NAV.saveStock(newStock);
+    sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
+    NAV.setDashLoaded(true);
+
+    const selLabel = selectedIds
+      ? `${selCount}/${ssuCards.length} SSU selected`
+      : `${ssuCards.length} SSU`;
+
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = `✓ ${selLabel} · ${Object.keys(newStock).length} items`;
+
+    // Relancer le calcul si un craft est déjà affiché
+    if (document.getElementById('craftResult').classList.contains('visible')) {
+      calcCraft();
+    }
+  } catch(e) {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = `✗ ${e.message.slice(0, 40)}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⟳ Refresh Stock';
+  }
+}
 
 const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
 
