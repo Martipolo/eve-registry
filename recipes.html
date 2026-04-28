@@ -15,17 +15,7 @@
     <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
   </div>
 
-  <!-- Flux visuel -->
-  <div class="panel cut" style="margin-bottom:28px">
-    <div class="panel-label">PRODUCTION FLOW</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2.4;color:var(--text3)">
-      <span style="color:var(--gold)">① MINER</span> Matrices brutes (SLAG / COMET / CHAR)
-      &nbsp;→&nbsp; <span style="color:var(--blue)">② RAFFINER</span> Intermédiaires (Silica Grains, Iron-Rich Nodules, Hydrocarbon Residue)
-      &nbsp;→&nbsp; <span style="color:var(--text2)">Matières brutes</span> (Nickel-Iron Veins, Tholin Aggregates, Feldspar Crystal Shards, Silicon Dust...)
-      &nbsp;→&nbsp; <span style="color:var(--accent)">③ CRAFTER</span> Composants (Reinforced Alloys, Carbon Weave, Thermal Composites)
-      &nbsp;→&nbsp; <span style="color:#fff">④ CRAFTER</span> Produit final (Building Foam)
-    </div>
-  </div>
+  
 
   <div id="recipesContent"></div>
 </div>
@@ -83,14 +73,14 @@ function renderRecipes() {
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 2 — INTERMEDIATES (REFINING)</div>`;
   for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
     html += card('⚗', name, `${rec.batch} units → via ${rec.machine}`, 'var(--blue)',
-      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), 'Matières brutes produites'));
+      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), 'Raw materials produced'));
   }
   html += `</div>`;
 
   // ── Étape 1 : Matrices brutes ─────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 1 — MATRICES BRUTES (ASTEROIDS)</div>
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 1 — RAW MATRICES (ASTEROIDS)</div>
     <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
-      <span>Matrice</span><span>Astéroïde</span><span>Outputs (40 units mined)</span><span style="text-align:right">Vol./u</span>
+      <span>Matrice</span><span>Asteroid</span><span>Outputs (40 units mined)</span><span style="text-align:right">Vol./u</span>
     </div>`;
   for (const [name, rec] of Object.entries(MATRICES)) {
     const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
