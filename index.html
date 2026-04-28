@@ -592,6 +592,26 @@ function computeCraft(recipeKey, wantedQty) {
   return result;
 }
 
+// Type IDs blockchain → noms affichables
+const TYPE_ID_MAP = {
+  "77801": "Nickel-Iron Veins",
+  "77803": "Silicon Dust",
+  "77804": "Tholin Aggregates",
+  "77805": "Platinum-Group Veins",
+  "88234": "Troilite Sulfide Grains",
+  "89258": "Hydrocarbon Residue",
+  "89259": "Silica Grains",
+  "89260": "Iron-Rich Nodules",
+  "84182": "Reinforced Alloys",
+  "84210": "Carbon Weave",
+  "88561": "Thermal Composites",
+  "77802": "Feldspar Crystal Shards",
+  "77806": "Water Ice",
+  "88083": "Platinum-Palladium Matrix",
+  "88084": "Hydrated Sulfide Matrix",
+  "88085": "Feldspar Crystals",
+};
+
 // ══ STATE ══════════════════════════════════════════════════════════
 let allChars   = [];
 let filtered   = [];
