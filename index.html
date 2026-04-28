@@ -379,76 +379,218 @@ footer span{color:var(--accent);}
 <!-- ════════════════════════════════════════════════════════════════ -->
 <script>
 // ══ RECETTES DE CRAFT ══════════════════════════════════════════════
-// Toutes les données extraites de l'Excel Eve_Frontier_toolv4.xlsx
+//
+// TIER 3 — Produits finis (craftés depuis des Tier 2)
+// TIER 2 — Intermédiaires (craftés depuis des Tier 1)
+// TIER 1 — Raffinés (craftés depuis des Tier 0 = minerais bruts)
+// TIER 0 — Minerais bruts (minés dans des astéroïdes)
 
 const RECIPES = {
   building_foam: {
     name: "Building Foam",
-    batch: 10,       // unités produites par batch
+    tier: 3,
+    batch: 10,       // 10 Building Foam par batch
     machine: "Printer S",
-    // Tier 3 → Tier 2 (composants intermédiaires par batch de 10)
-    components: [
-      { name: "Reinforced Alloys", qty: 65 },
-      { name: "Carbon Weave",      qty: 65 },
-      { name: "Thermal Composites",qty: 65 },
-    ],
-    // Tier 2 : recettes des composants (production par cycle Refinery M)
-    intermediate: {
-      "Reinforced Alloys": {
-        batch: 14, // produit par cycle
-        inputs: [
-          { name: "Nickel-Iron Veins",       qty: 1050 },
-          { name: "Feldspar Crystal Shards", qty: 1050 },
-        ]
-      },
-      "Carbon Weave": {
-        batch: 14,
-        inputs: [
-          { name: "Tholin Aggregates", qty: 3150 },
-        ]
-      },
-      "Thermal Composites": {
-        batch: 14,
-        inputs: [
-          { name: "Silicon Dust",            qty: 630  },
-          { name: "Tholin Aggregates",       qty: 1260 },
-          { name: "Feldspar Crystal Shards", qty: 210  },
-        ]
-      },
-    },
-    // Tier 1 : recettes des raffinés (ces items sont eux-mêmes des crafts)
-    // Les minerais bruts sont des inputs directs (Tier 0)
-    // Tier 0 : minerais bruts et leur yield par cycle
-    raw_map: {
-      // nom_tier1 : { asteroid, qty_per_cycle, volume }
-      "Nickel-Iron Veins":       { asteroid: "SLAG",  yield_per_trip: 1050, volume: 10, type: "Metal-Rich Ore" },
-      "Feldspar Crystal Shards": { asteroid: "CHAR",  yield_per_trip: 1050, volume: 1,  type: "Common Ore"     },
-      "Tholin Aggregates":       { asteroid: "COMET", yield_per_trip: 3150, volume: 10, type: "Carbonaceous Ore"},
-      "Silicon Dust":            { asteroid: "SLAG",  yield_per_trip: 630,  volume: 1,  type: "Metal-Rich Ore" },
-    },
-    // Astéroïdes → matières premières qu'on y trouve
-    asteroids: {
-      "CHAR":  { resources: ["Feldspar Crystal Shards"], field: "Asteroid Cluster / Natural" },
-      "COMET": { resources: ["Tholin Aggregates"],       field: "Carbon Field" },
-      "SLAG":  { resources: ["Nickel-Iron Veins","Silicon Dust"], field: "Ferrous Cluster" },
-    }
-  }
+    inputs: [        // quantités pour 1 batch de 10
+      { name: "Reinforced Alloys",  qty: 65 },
+      { name: "Carbon Weave",       qty: 65 },
+      { name: "Thermal Composites", qty: 65 },
+    ]
+  },
 };
 
-// Type IDs pour matcher avec les SSU (depuis l'Excel SSU-Fusion)
-const TYPE_ID_MAP = {
-  "77801": "Nickel-Iron Veins",
-  "77804": "Tholin Aggregates",
-  "77803": "Silicon Dust",
-  "77805": "Platinum-Group Veins",
-  "89258": "Hydrocarbon Residue",
-  "89259": "Silica Grains",
-  "89260": "Iron-Rich Nodules",
-  "88234": "Troilite Sulfide Grains",
-  "84182": "Reinforced Alloys",
-  "84210": "Carbon Weave",
-  "88561": "Thermal Composites",
+// TIER 2 — Intermédiaires
+const T2_RECIPES = {
+  "Reinforced Alloys": {
+    batch: 14,
+    machine: "Refinery M",
+    inputs: [
+      { name: "Nickel-Iron Veins",       qty: 1050 },
+      { name: "Feldspar Crystal Shards", qty: 1050 },
+    ]
+  },
+  "Carbon Weave": {
+    batch: 14,
+    machine: "Refinery M",
+    inputs: [
+      { name: "Tholin Aggregates", qty: 3150 },
+    ]
+  },
+  "Thermal Composites": {
+    batch: 14,
+    machine: "Refinery M",
+    inputs: [
+      { name: "Silicon Dust",            qty: 630  },
+      { name: "Tholin Aggregates",       qty: 1260 },
+      { name: "Feldspar Crystal Shards", qty: 210  },
+    ]
+  },
 };
+
+// TIER 1 — Raffinés (craftés depuis des minerais bruts Tier 0)
+const T1_RECIPES = {
+  "Iron-Rich Nodules": {
+    batch: 10,
+    machine: "Refinery S",
+    inputs: [
+      { name: "Platinum-Group Veins", qty: 198 },
+      { name: "Nickel-Iron Veins",    qty: 20  },
+    ]
+  },
+  "Hydrocarbon Residue": {
+    batch: 20,
+    machine: "Refinery S",
+    inputs: [
+      { name: "Tholin Aggregates",       qty: 180 },
+      { name: "Troilite Sulfide Grains", qty: 20  },
+    ]
+  },
+  "Silica Grains": {
+    batch: 20,
+    machine: "Refinery S",
+    inputs: [
+      { name: "Feldspar Crystal Shards", qty: 50  },
+      { name: "Silicon Dust",            qty: 150 },
+    ]
+  },
+};
+
+// TIER 0 — Minerais bruts (minés dans des astéroïdes)
+// Ces items se trouvent directement en minant
+const T0_SOURCES = {
+  "Platinum-Group Veins":    { asteroid: "SLAG",  volume: 10, type: "Metal-Rich Ore",    craftedFrom: "Platinum-Palladium Matrix" },
+  "Nickel-Iron Veins":       { asteroid: "SLAG",  volume: 10, type: "Metal-Rich Ore",    craftedFrom: "Platinum-Palladium Matrix" },
+  "Tholin Aggregates":       { asteroid: "COMET", volume: 10, type: "Carbonaceous Ore",  craftedFrom: "Hydrated Sulfide Matrix" },
+  "Troilite Sulfide Grains": { asteroid: "COMET", volume: 10, type: "Carbonaceous Ore",  craftedFrom: "Hydrated Sulfide Matrix" },
+  "Feldspar Crystal Shards": { asteroid: "CHAR",  volume: 1,  type: "Common Ore",        craftedFrom: "Feldspar Crystals" },
+  "Silicon Dust":            { asteroid: "CHAR",  volume: 1,  type: "Common Ore",        craftedFrom: "Feldspar Crystals" },
+  "Water Ice":               { asteroid: "COMET", volume: 1,  type: "Ice",               craftedFrom: "Hydrated Sulfide Matrix" },
+};
+
+// Recettes des minerais bruts (on les crafe depuis des astéroïdes via Extractor)
+// Ces objets sont craftés puis raffinés pour donner les T0
+const T0_RECIPES = {
+  "Platinum-Palladium Matrix": {
+    batch: 40,   // 40 Matrix minés = 10 Silica Grains + 30 Iron-Rich Nodules
+    asteroid: "SLAG",
+    volume: 100,
+    outputs: [
+      { name: "Silica Grains",      qty: 10 },
+      { name: "Iron-Rich Nodules",  qty: 30 },
+    ]
+  },
+  "Hydrated Sulfide Matrix": {
+    batch: 40,   // 40 Matrix minés = 20 Hydrocarbon Residue + 200 Water Ice
+    asteroid: "COMET",
+    volume: 10,
+    outputs: [
+      { name: "Hydrocarbon Residue", qty: 20  },
+      { name: "Water Ice",           qty: 200 },
+    ]
+  },
+  "Feldspar Crystals": {
+    batch: 40,   // 40 Crystals minés = 10 Hydrocarbon Residue + 30 Silica Grains
+    asteroid: "CHAR",
+    volume: 10,
+    outputs: [
+      { name: "Hydrocarbon Residue", qty: 10 },
+      { name: "Silica Grains",       qty: 30 },
+    ]
+  },
+};
+
+// Utilitaire : arrondi au batch supérieur
+function ceilBatch(needed, batchSize) {
+  if (needed <= 0) return 0;
+  return Math.ceil(needed / batchSize) * batchSize;
+}
+
+// ── CALCULATEUR PRINCIPAL ─────────────────────────────────────────
+// Calcule TOUT ce dont on a besoin pour crafter N unités d'un produit fini
+// En tenant compte des stocks SSU et en arrondissant aux batches
+function computeCraft(recipeKey, wantedQty) {
+  const recipe = RECIPES[recipeKey];
+  if (!recipe) return null;
+
+  // Nombre de batches de produit final
+  const finalBatches = Math.ceil(wantedQty / recipe.batch);
+  const finalQty = finalBatches * recipe.batch;
+
+  const result = {
+    final:   { name: recipe.name, needed: finalQty, batches: finalBatches },
+    t2:      {},   // { nom: { needed, stock, toCraft, batches } }
+    t1:      {},   // intermédiaires raffinés
+    t0_mine: {},   // minerais bruts à miner
+    t0_raw:  {},   // minerais bruts consommés
+  };
+
+  // ── ÉTAPE 1 : calculer les T2 nécessaires ───────────────────────
+  for (const inp of recipe.inputs) {
+    const name    = inp.name;
+    const needed  = inp.qty * finalBatches;
+    const stock   = ssuStock[name] || 0;
+    const toCraft = Math.max(0, needed - stock);
+    const r       = T2_RECIPES[name];
+    const batches = r ? Math.ceil(toCraft / r.batch) : 0;
+    const actualCraft = batches * (r?.batch || 1);
+
+    result.t2[name] = { needed, stock, toCraft, batches, actualCraft, recipe: r };
+  }
+
+  // ── ÉTAPE 2 : calculer les T1 nécessaires ───────────────────────
+  // Pour chaque T2 à crafter, calculer les inputs (qui sont des T1)
+  const t1needs = {}; // { nom: quantité brute nécessaire }
+  for (const [name, t2] of Object.entries(result.t2)) {
+    if (t2.batches === 0) continue;
+    const r = t2.recipe;
+    if (!r) continue;
+    for (const inp of r.inputs) {
+      t1needs[inp.name] = (t1needs[inp.name] || 0) + inp.qty * t2.batches;
+    }
+  }
+
+  for (const [name, needed] of Object.entries(t1needs)) {
+    const stock   = ssuStock[name] || 0;
+    const toCraft = Math.max(0, needed - stock);
+    const r       = T1_RECIPES[name];
+    const batches = r ? Math.ceil(toCraft / r.batch) : 0;
+    const actualCraft = batches * (r?.batch || 1);
+    result.t1[name] = { needed, stock, toCraft, batches, actualCraft, recipe: r };
+  }
+
+  // ── ÉTAPE 3 : calculer les T0 (minerais bruts) ──────────────────
+  // Pour chaque T1 à crafter, calculer les inputs (T0 bruts)
+  const t0needs = {};
+  for (const [name, t1] of Object.entries(result.t1)) {
+    if (t1.batches === 0) continue;
+    const r = t1.recipe;
+    if (!r) continue;
+    for (const inp of r.inputs) {
+      t0needs[inp.name] = (t0needs[inp.name] || 0) + inp.qty * t1.batches;
+    }
+  }
+
+  for (const [name, needed] of Object.entries(t0needs)) {
+    const stock   = ssuStock[name] || 0;
+    const toMine  = Math.max(0, needed - stock);
+    result.t0_raw[name] = { needed, stock, toMine };
+  }
+
+  // ── ÉTAPE 4 : calculer les voyages de minage ────────────────────
+  // Grouper les T0 par astéroïde
+  const byAsteroid = {};
+  for (const [name, data] of Object.entries(result.t0_raw)) {
+    if (data.toMine <= 0) continue;
+    const src = T0_SOURCES[name];
+    if (!src) continue;
+    const ast = src.asteroid;
+    if (!byAsteroid[ast]) byAsteroid[ast] = [];
+    byAsteroid[ast].push({ name, ...data, volume: src.volume });
+  }
+  result.byAsteroid = byAsteroid;
+
+  return result;
+}
 
 // ══ STATE ══════════════════════════════════════════════════════════
 let allChars   = [];
@@ -751,99 +893,100 @@ async function getItemName(typeId) {
   } catch { return `ID ${typeId}`; }
 }
 
-// ══ PAGE 3 : CONSTRUCTION ═════════════════════════════════════════
+// ══ PAGE 3 : CONSTRUCTION ════════════════════════════════════════
 function calcCraft() {
   const itemKey = document.getElementById('craftItem').value;
   const qty     = parseInt(document.getElementById('craftQty').value) || 10;
   const soute   = parseInt(document.getElementById('crafSoute').value) || 990;
-  const recipe  = RECIPES[itemKey];
-  if (!recipe) return;
 
-  // Nombre de batches nécessaires (arrondi supérieur)
-  const batches = Math.ceil(qty / recipe.batch);
-  const totalQty = batches * recipe.batch;
+  const r = computeCraft(itemKey, qty);
+  if (!r) return;
 
-  // ── TIER 3 : composants nécessaires ──
-  const t3needs = recipe.components.map(c => ({
-    name: c.name,
-    needed: c.qty * batches,
-    stock: ssuStock[c.name] || 0
-  }));
-
-  // ── TIER 2 : cycles intermédiaires nécessaires ──
-  const t2needs = {};
-  for (const comp of recipe.components) {
-    const inter = recipe.intermediate[comp.name];
-    if (!inter) continue;
-    const totalComp = comp.qty * batches;
-    const stock = ssuStock[comp.name] || 0;
-    const toCraft = Math.max(0, totalComp - stock);
-    const cycles = Math.ceil(toCraft / inter.batch);
-    for (const inp of inter.inputs) {
-      const key = inp.name;
-      t2needs[key] = (t2needs[key] || 0) + inp.qty * cycles;
-    }
-  }
-
-  // ── TIER 0 : minerais bruts à miner ──
-  const t0needs = {};
-  for (const [mat, needed] of Object.entries(t2needs)) {
-    const stock = ssuStock[mat] || 0;
-    const toMine = Math.max(0, needed - stock);
-    if (toMine > 0) t0needs[mat] = toMine;
-  }
-
-  // ── Calcul des voyages de minage ──
-  const trips = {};
-  for (const [mat, toMine] of Object.entries(t0needs)) {
-    const raw = recipe.raw_map[mat];
-    if (!raw) continue;
-    const ast = raw.asteroid;
-    const volPerUnit = raw.volume;
-    const unitsPerTrip = Math.floor(soute / volPerUnit);
-    const numTrips = Math.ceil(toMine / unitsPerTrip);
-    if (!trips[ast]) trips[ast] = [];
-    trips[ast].push({ mat, toMine, unitsPerTrip, numTrips });
-  }
-
-  // ── RENDER ──
   document.getElementById('craftResult').classList.add('visible');
 
-  // T3
-  document.getElementById('craftT3').innerHTML = t3needs.map(r => matRow(r.name, r.needed, r.stock)).join('');
+  // ── TIER 3 : produit final ──
+  document.getElementById('craftT3').innerHTML = `
+    <div class="mat-row">
+      <div class="mat-name">${esc(r.final.name)}</div>
+      <div class="mat-qty need">${r.final.needed} <span style="font-size:9px;color:var(--text3)">(${r.final.batches} batch${r.final.batches>1?'es':''})</span></div>
+      <div class="mat-qty ok">—</div>
+    </div>`;
 
-  // T2
-  const t2html = Object.entries(t2needs).map(([name, needed]) => matRow(name, needed, ssuStock[name]||0)).join('');
-  document.getElementById('craftT2').innerHTML = t2html || '<div class="mat-row"><span class="mat-name" style="color:var(--green)">✓ Tout en stock</span></div>';
-
-  // T1 (raffinés — ici identiques aux T2 dans ce jeu, on montre les besoins net)
-  document.getElementById('craftT1').innerHTML = t2html || '<div class="mat-row"><span class="mat-name" style="color:var(--green)">✓ Rien à raffiner</span></div>';
-
-  // T0
-  const t0html = Object.entries(t0needs).map(([name, toMine]) => matRow(name, toMine, 0)).join('');
-  document.getElementById('craftT0').innerHTML = t0html || '<div class="mat-row"><span class="mat-name" style="color:var(--green)">✓ Tout en stock</span></div>';
-
-  // Voyages
-  const tripHtml = Object.entries(trips).map(([ast, mats]) => {
-    const totalTrips = Math.max(...mats.map(m => m.numTrips));
-    const details = mats.map(m =>
-      `${m.mat} : ${m.toMine.toLocaleString()} unités (${m.unitsPerTrip}/voyage)`
-    ).join('<br>');
-    return `<div class="trip-card">
-      <div class="trip-asteroid">${ast}</div>
-      <div class="trip-resource">${mats.map(m => m.mat).join(', ')}</div>
-      <div class="trip-count">${totalTrips}</div>
-      <div class="trip-label">aller-retour${totalTrips > 1 ? 's' : ''} de minage</div>
-      <div class="trip-detail">${details}</div>
+  // ── TIER 2 : composants intermédiaires ──
+  document.getElementById('craftT2').innerHTML = Object.entries(r.t2).map(([name, d]) => {
+    const cls = d.stock >= d.needed ? 'ok' : d.stock > 0 ? 'partial' : 'need';
+    const craftInfo = d.batches > 0
+      ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.actualCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
+      : `<span style="font-size:9px;color:var(--green)"> ✓ stock suffisant</span>`;
+    return `<div class="mat-row">
+      <div class="mat-name">${esc(name)}${craftInfo}</div>
+      <div class="mat-qty need">${d.needed}</div>
+      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
     </div>`;
   }).join('');
-  document.getElementById('craftTrips').innerHTML = tripHtml ||
-    `<div class="trip-card" style="border-left-color:var(--green)">
-      <div class="trip-asteroid">✓ COMPLET</div>
-      <div class="trip-resource">Tout est en stock !</div>
-      <div class="trip-count">0</div>
-      <div class="trip-label">voyage nécessaire</div>
+
+  // ── TIER 1 : raffinés à crafter ──
+  const t1html = Object.entries(r.t1).map(([name, d]) => {
+    const cls = d.stock >= d.needed ? 'ok' : d.stock > 0 ? 'partial' : 'need';
+    const craftInfo = d.batches > 0
+      ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.actualCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
+      : `<span style="font-size:9px;color:var(--green)"> ✓ stock suffisant</span>`;
+    return `<div class="mat-row">
+      <div class="mat-name">${esc(name)}${craftInfo}</div>
+      <div class="mat-qty need">${d.needed}</div>
+      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
     </div>`;
+  }).join('');
+  document.getElementById('craftT1').innerHTML = t1html ||
+    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
+
+  // ── TIER 0 : minerais bruts ──
+  const t0html = Object.entries(r.t0_raw).map(([name, d]) => {
+    const cls = d.toMine <= 0 ? 'ok' : 'need';
+    return `<div class="mat-row">
+      <div class="mat-name">${esc(name)}</div>
+      <div class="mat-qty need">${d.needed}</div>
+      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('craftT0').innerHTML = t0html ||
+    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
+
+  // ── VOYAGES DE MINAGE ──
+  if (Object.keys(r.byAsteroid).length === 0) {
+    document.getElementById('craftTrips').innerHTML = `
+      <div class="trip-card" style="border-left-color:var(--green)">
+        <div class="trip-asteroid">✓ COMPLET</div>
+        <div class="trip-resource">Tout est en stock !</div>
+        <div class="trip-count">0</div>
+        <div class="trip-label">voyage nécessaire</div>
+      </div>`;
+    return;
+  }
+
+  const tripsHtml = Object.entries(r.byAsteroid).map(([ast, mats]) => {
+    // Calcul : pour chaque mat, combien d'unités par voyage selon la soute
+    const lines = mats.map(m => {
+      const perTrip = Math.floor(soute / m.volume);
+      const trips   = Math.ceil(m.toMine / perTrip);
+      return { ...m, perTrip, trips };
+    });
+    // Le nombre de voyages = le max de tous les mats de cet astéroïde
+    const maxTrips = Math.max(...lines.map(l => l.trips));
+    const detail = lines.map(l =>
+      `${esc(l.name)} : ${l.toMine.toLocaleString()} à miner (${l.perTrip.toLocaleString()}/voyage → ${l.trips} voyage${l.trips>1?'s':''})`
+    ).join('<br>');
+
+    return `<div class="trip-card">
+      <div class="trip-asteroid">${esc(ast)}</div>
+      <div class="trip-resource">${lines.map(l => esc(l.name)).join(', ')}</div>
+      <div class="trip-count">${maxTrips}</div>
+      <div class="trip-label">aller-retour${maxTrips>1?'s':''} de minage</div>
+      <div class="trip-detail">${detail}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('craftTrips').innerHTML = tripsHtml;
 }
 
 function matRow(name, needed, stock) {
@@ -860,52 +1003,113 @@ function matRow(name, needed, stock) {
 // ══ PAGE 4 : RECETTES ═════════════════════════════════════════════
 function renderRecipes() {
   const container = document.getElementById('recipesContent');
-  if (container.innerHTML !== '') return; // déjà rendu
+  if (container.innerHTML !== '') return;
+
+  const recipeBlock = (title, color, rows) => `
+    <div style="margin-bottom:4px">
+      <div class="tier-title" style="margin-bottom:8px">${title}</div>
+      <div class="tbl-head" style="grid-template-columns:1fr 90px 90px">
+        <span>Ressource</span><span style="text-align:right">Qté</span><span style="text-align:right">Batch</span>
+      </div>
+      ${rows}
+    </div>`;
+
+  const matR = (name, qty, batch='') => `
+    <div class="mat-row">
+      <div class="mat-name">${esc(name)}</div>
+      <div class="mat-qty need" style="text-align:right">${qty}</div>
+      <div class="mat-qty" style="color:var(--text3);text-align:right">${batch}</div>
+    </div>`;
 
   let html = '';
-  for (const [key, recipe] of Object.entries(RECIPES)) {
+
+  // ── TIER 3 : Produits finis ──────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 3 — PRODUITS FINIS</div>`;
+  for (const [key, rec] of Object.entries(RECIPES)) {
     html += `
-      <div class="panel cut" style="margin-bottom:24px">
-        <div class="panel-label">${esc(recipe.name)} — ${recipe.batch} unités / batch</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:16px;letter-spacing:2px;text-transform:uppercase">
-          Machine : <span style="color:var(--accent)">${esc(recipe.machine)}</span>
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);margin-bottom:8px">
+          ⚙ ${esc(rec.name)} — <span style="color:var(--accent)">${rec.batch} unités</span>
+          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
         </div>
-
-        <div class="tier-title" style="margin-bottom:10px">TIER 3 — COMPOSANTS FINAUX</div>
-        <div class="tbl-head" style="grid-template-columns:1fr 100px">
-          <span>Composant</span><span style="text-align:right">Qté / batch</span>
+        <div class="tbl-head" style="grid-template-columns:1fr 90px">
+          <span>Composant requis</span><span style="text-align:right">Quantité</span>
         </div>
-        ${recipe.components.map(c => `
+        ${rec.inputs.map(i => `
           <div class="mat-row">
-            <div class="mat-name">${esc(c.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${c.qty}</div>
-          </div>`).join('')}
-
-        <div class="tier-title" style="margin-top:20px;margin-bottom:10px">TIER 2 — INTERMÉDIAIRES</div>
-        ${Object.entries(recipe.intermediate).map(([name, inter]) => `
-          <div style="margin-bottom:14px">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text2);letter-spacing:1px;padding:6px 14px;background:var(--bg3);border-left:2px solid var(--accent)">
-              ${esc(name)} — <span style="color:var(--text3)">${inter.batch} unités / cycle (Refinery M)</span>
-            </div>
-            ${inter.inputs.map(inp => `
-              <div class="mat-row" style="padding-left:28px">
-                <div class="mat-name" style="color:var(--text2)">↳ ${esc(inp.name)}</div>
-                <div class="mat-qty" style="color:var(--text3);text-align:right">${inp.qty} / cycle</div>
-              </div>`).join('')}
-          </div>`).join('')}
-
-        <div class="tier-title" style="margin-top:20px;margin-bottom:10px">TIER 0 — MINERAIS BRUTS</div>
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Minerai</span><span style="text-align:right">Astéroïde</span><span style="text-align:right">Volume/u</span>
-        </div>
-        ${Object.entries(recipe.raw_map).map(([name, raw]) => `
-          <div class="mat-row">
-            <div class="mat-name">${esc(name)}</div>
-            <div class="mat-qty" style="color:var(--gold);text-align:right">${esc(raw.asteroid)}</div>
-            <div class="mat-qty" style="color:var(--text3);text-align:right">${raw.volume}</div>
+            <div class="mat-name">${esc(i.name)}</div>
+            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
           </div>`).join('')}
       </div>`;
   }
+  html += `</div>`;
+
+  // ── TIER 2 : Intermédiaires ──────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 2 — INTERMÉDIAIRES</div>`;
+  for (const [name, rec] of Object.entries(T2_RECIPES)) {
+    html += `
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--blue);margin-bottom:8px">
+          🔧 ${esc(name)} — <span style="color:var(--blue)">${rec.batch} unités / batch</span>
+          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
+        </div>
+        <div class="tbl-head" style="grid-template-columns:1fr 90px">
+          <span>Input requis</span><span style="text-align:right">Quantité</span>
+        </div>
+        ${rec.inputs.map(i => `
+          <div class="mat-row">
+            <div class="mat-name">${esc(i.name)}</div>
+            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+  html += `</div>`;
+
+  // ── TIER 1 : Raffinés ────────────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 1 — RAFFINÉS</div>`;
+  for (const [name, rec] of Object.entries(T1_RECIPES)) {
+    html += `
+      <div style="margin-bottom:20px">
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
+          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--gold);margin-bottom:8px">
+          ⚗ ${esc(name)} — <span style="color:var(--gold)">${rec.batch} unités / batch</span>
+          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
+        </div>
+        <div class="tbl-head" style="grid-template-columns:1fr 90px">
+          <span>Minerai requis (Tier 0)</span><span style="text-align:right">Quantité</span>
+        </div>
+        ${rec.inputs.map(i => `
+          <div class="mat-row">
+            <div class="mat-name">${esc(i.name)}</div>
+            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+  html += `</div>`;
+
+  // ── TIER 0 : Minerais bruts ──────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 0 — MINERAIS BRUTS (ASTÉROÏDES)</div>`;
+  html += `<div class="tbl-head" style="grid-template-columns:1fr 80px 100px 60px">
+    <span>Minerai brut</span><span>Astéroïde</span><span>Craft (40 unités)</span><span style="text-align:right">Vol./u</span>
+  </div>`;
+  for (const [matrix, rec] of Object.entries(T0_RECIPES)) {
+    html += `
+      <div class="mat-row" style="grid-template-columns:1fr 80px 100px 60px;align-items:start;padding:10px 14px">
+        <div>
+          <div class="mat-name">${esc(matrix)}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">
+            ${rec.outputs.map(o => `→ ${o.qty}x ${esc(o.name)}`).join('<br>')}
+          </div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);padding-top:2px">${esc(rec.asteroid)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);padding-top:2px">${rec.batch} unités</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right;padding-top:2px">${rec.volume}</div>
+      </div>`;
+  }
+  html += `</div>`;
+
   container.innerHTML = html;
 }
 
