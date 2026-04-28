@@ -158,3 +158,8 @@ EVE Frontier is a trademark of CCP hf.
 ---
 
 *Built by [Ekno](https://martipolo.github.io/EF-Mining-Planner/?q=Ekno) — EVE Frontier player*
+
+## ☕ Support
+
+If EF Mining Planner saves you time, consider buying me a beer!
+[ko-fi.com/efminingplanner](https://ko-fi.com/efminingplanner)
