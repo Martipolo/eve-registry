@@ -49,9 +49,9 @@ h1{font-size:26px;font-weight:700;letter-spacing:6px;text-transform:uppercase;co
 .subtitle span{color:var(--accent);}
 
 /* ── PANELS ── */
-.panel{background:var(--card);border:1px solid var(--border);padding:28px 24px 20px;margin-bottom:24px;position:relative;}
-.panel.cut{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);margin-top:10px;}
-.panel-label{position:absolute;top:0;left:20px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:0 8px;transform:translateY(-50%);white-space:nowrap;z-index:2;}
+.panel{background:var(--card);border:1px solid var(--border);padding:20px 24px;margin-bottom:24px;position:relative;}
+
+.panel-label{position:absolute;top:-1px;left:16px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:2px 8px;transform:translateY(-50%);white-space:nowrap;z-index:10;}
 
 /* ── STATUS BAR ── */
 .status-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
@@ -97,10 +97,10 @@ select option{background:var(--bg3);}
 .char-row:hover .char-id-cell{color:var(--blue);}
 
 /* ── SELECTED CARD ── */
-.sel-card{background:var(--card);border:1px solid var(--blue);box-shadow:0 0 20px var(--blueglow);padding:18px 24px;margin-bottom:20px;position:relative;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));display:none;animation:fi .2s ease;}
+.sel-card{background:var(--card);border:1px solid var(--blue);box-shadow:0 0 20px var(--blueglow);padding:22px 24px 18px;margin-top:14px;margin-bottom:20px;position:relative;display:none;animation:fi .2s ease;}
 @keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .sel-card.visible{display:block;}
-.sel-card::before{content:'SELECTED CHARACTER';position:absolute;top:0;left:22px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:0 8px;transform:translateY(-50%);white-space:nowrap;z-index:2;}
+.sel-card::before{content:'SELECTED CHARACTER';position:absolute;top:-1px;left:22px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:2px 8px;transform:translateY(-50%);white-space:nowrap;z-index:10;}
 .sel-name{font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:12px;}
 .sel-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .sel-field label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:3px;}
@@ -161,3 +161,7 @@ footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border2);font
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border);}
+
+/* ── Panel label fix ── */
+.panel { overflow: visible; }
+.panel-wrap { margin-top: 14px; }
