@@ -48,28 +48,30 @@ const T2_RECIPES = {
 };
 
 // ── TIER 1 — Raffinés ─────────────────────────────────────────────
-// Craftés depuis des minerais bruts Tier 0
+// Raffinés dans une Refinery S : on met un raffiné en INPUT
+// et on obtient des minerais bruts (T0) en OUTPUT
+// Ex: 10 Iron-Rich Nodules → 198 Platinum-Group Veins + 20 Nickel-Iron Veins
 const T1_RECIPES = {
   "Iron-Rich Nodules": {
-    batch:   10,
+    batch:   10,           // 10 nodules raffinés donnent :
     machine: "Refinery S",
-    inputs: [
+    outputs: [
       { name: "Platinum-Group Veins", qty: 198 },
       { name: "Nickel-Iron Veins",    qty:  20 },
     ]
   },
   "Hydrocarbon Residue": {
-    batch:   20,
+    batch:   20,           // 20 résidus raffinés donnent :
     machine: "Refinery S",
-    inputs: [
+    outputs: [
       { name: "Tholin Aggregates",       qty: 180 },
       { name: "Troilite Sulfide Grains", qty:  20 },
     ]
   },
   "Silica Grains": {
-    batch:   20,
+    batch:   20,           // 20 grains raffinés donnent :
     machine: "Refinery S",
-    inputs: [
+    outputs: [
       { name: "Feldspar Crystal Shards", qty:  50 },
       { name: "Silicon Dust",            qty: 150 },
     ]
@@ -154,34 +156,46 @@ function computeCraft(recipeKey, wantedQty) {
     result.t2[inp.name] = { needed, stock, toCraft, batches, actualCraft: batches * (r?.batch || 1), recipe: r };
   }
 
-  // ── TIER 1 : inputs des T2 ─────────────────────────────────────
-  const t1needs = {};
+  // ── TIER 0 : minerais bruts directement nécessaires pour T2 ────
+  // Les T2 consomment directement des minerais bruts (Nickel-Iron Veins, etc.)
+  // Ces minerais bruts sont obtenus en raffinant des T1 (Iron-Rich Nodules → Nickel-Iron Veins)
+  const t0needs = {};
   for (const [, t2] of Object.entries(result.t2)) {
     if (t2.batches === 0 || !t2.recipe) continue;
     for (const inp of t2.recipe.inputs) {
-      t1needs[inp.name] = (t1needs[inp.name] || 0) + inp.qty * t2.batches;
-    }
-  }
-  for (const [name, needed] of Object.entries(t1needs)) {
-    const stock   = (window.ssuStock || {})[name] || 0;
-    const toCraft = Math.max(0, needed - stock);
-    const r       = T1_RECIPES[name];
-    const batches = r ? Math.ceil(toCraft / r.batch) : 0;
-    result.t1[name] = { needed, stock, toCraft, batches, actualCraft: batches * (r?.batch || 1), recipe: r };
-  }
-
-  // ── TIER 0 : minerais bruts ─────────────────────────────────────
-  const t0needs = {};
-  for (const [, t1] of Object.entries(result.t1)) {
-    if (t1.batches === 0 || !t1.recipe) continue;
-    for (const inp of t1.recipe.inputs) {
-      t0needs[inp.name] = (t0needs[inp.name] || 0) + inp.qty * t1.batches;
+      t0needs[inp.name] = (t0needs[inp.name] || 0) + inp.qty * t2.batches;
     }
   }
   for (const [name, needed] of Object.entries(t0needs)) {
     const stock  = (window.ssuStock || {})[name] || 0;
     const toMine = Math.max(0, needed - stock);
     result.t0_raw[name] = { needed, stock, toMine };
+  }
+
+  // ── TIER 1 : raffinés à utiliser pour obtenir les T0 manquants ─
+  // Pour chaque T0 manquant, trouver quel T1 le produit et combien en raffiner
+  for (const [t0name, t0data] of Object.entries(result.t0_raw)) {
+    if (t0data.toMine <= 0) continue;
+    // Trouver le T1 qui produit ce T0
+    for (const [t1name, t1rec] of Object.entries(T1_RECIPES)) {
+      const out = t1rec.outputs.find(o => o.name === t0name);
+      if (!out) continue;
+      // Combien de batches T1 pour obtenir assez de T0 ?
+      const batches     = Math.ceil(t0data.toMine / out.qty);
+      const actualCraft = batches * t1rec.batch;
+      if (!result.t1[t1name]) {
+        result.t1[t1name] = { batches, actualCraft, recipe: t1rec, produces: [] };
+      } else {
+        // Prendre le max si ce T1 produit plusieurs T0 différents
+        if (batches > result.t1[t1name].batches) {
+          result.t1[t1name].batches     = batches;
+          result.t1[t1name].actualCraft = actualCraft;
+        }
+      }
+      result.t1[t1name].produces = result.t1[t1name].produces || [];
+      result.t1[t1name].produces.push({ t0: t0name, qty: out.qty * batches });
+      break;
+    }
   }
 
   // ── Voyages par astéroïde ───────────────────────────────────────
