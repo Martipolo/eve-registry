@@ -564,18 +564,20 @@ async function loadDashboard(char) {
   try {
     addLog(`Scan de : ${char.name}`);
 
-    // Récupérer TOUS les objets du wallet, puis filtrer manuellement sur TARGET_TYPE
-    // (même logique que scanner_ekno.html qui fonctionne)
+    // Récupérer TOUS les objets du wallet page par page, puis filtrer sur TARGET_TYPE
     let allObjects = [];
     let cursor = null;
-    do {
-      const params = [ownerWallet, { options: { showContent: true, showType: true } }];
-      if (cursor) params[1].cursor = cursor;
-      const page = await callSui("suix_getOwnedObjects", params);
-      const data = page.result?.data || [];
-      allObjects = allObjects.concat(data);
-      cursor = (page.result?.hasNextPage && page.result?.nextCursor) ? page.result.nextCursor : null;
-    } while (cursor);
+    let hasNext = true;
+    while (hasNext) {
+      const pageOptions = { options: { showContent: true, showType: true } };
+      if (cursor) pageOptions.cursor = cursor;
+      const page = await callSui("suix_getOwnedObjects", [ownerWallet, pageOptions]);
+      const pageData = page.result?.data || [];
+      allObjects = allObjects.concat(pageData);
+      hasNext = page.result?.hasNextPage === true;
+      cursor = hasNext ? page.result.nextCursor : null;
+      if (pageData.length === 0) break; // sécurité anti-boucle infinie
+    }
 
     const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
     addLog(`${allObjects.length} objets scannés → ${caps.length} clé(s) de stockage trouvée(s).`);
@@ -589,42 +591,55 @@ async function loadDashboard(char) {
     const ssuCards = [];
     ssuStock = {}; // reset
 
-    for (const cap of caps) {
-      const ssuId = cap.data?.content?.fields?.authorized_object_id;
-      if (!ssuId) continue;
+    for (let capIdx = 0; capIdx < caps.length; capIdx++) {
+      const cap = caps[capIdx];
+      addLog(`SSU ${capIdx+1}/${caps.length} en cours...`);
 
-      // 2. Infos du SSU
-      const ssuObj = await callSui("sui_getObject", [ssuId, { showContent: true }]);
-      if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... supprimé.`, '#d29922'); continue; }
+      try {
+        const ssuId = cap.data?.content?.fields?.authorized_object_id;
+        if (!ssuId) { addLog(`⚠️ Cap ${capIdx+1} : pas d'authorized_object_id`, '#d29922'); continue; }
 
-      const fields = ssuObj.result.data.content.fields;
-      const ssuName = fields.metadata?.fields?.name || fields.name || "Storage Unit";
-      const maxCap  = parseInt(fields.max_capacity || fields.capacity || '2000000');
-      addLog(`Lecture de : ${ssuName}`);
+        // Infos du SSU
+        const ssuObj = await callSui("sui_getObject", [ssuId, { showContent: true }]);
+        if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... introuvable`, '#d29922'); continue; }
 
-      // 3. Dynamic Fields → inventaire
-      const dfRes = await callSui("suix_getDynamicFields", [ssuId]);
-      const invField = (dfRes.result?.data || []).find(f => f.name.value === cap.data.objectId);
+        const fields = ssuObj.result.data.content.fields;
+        const ssuName = fields.metadata?.fields?.name || fields.name || `Storage Unit ${capIdx+1}`;
+        const maxCap  = parseInt(fields.max_capacity || fields.capacity || '2000000');
+        addLog(`✓ ${ssuName}`);
 
-      let items = [];
-      let usedCap = 0;
-      if (invField) {
-        const invObj = await callSui("sui_getObject", [invField.objectId, { showContent: true }]);
-        if (invObj.result?.data) {
-          const inv = invObj.result.data.content.fields.value.fields;
-          usedCap = parseInt(inv.used_capacity || '0');
-          const contents = inv.items?.fields?.contents || [];
-          for (const item of contents) {
-            const d = item.fields.value.fields;
-            const tname = await getItemName(d.type_id);
-            items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id, volume: parseInt(d.volume||1) });
-            // Agréger dans le stock global
-            ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
+        // Dynamic Fields → inventaire
+        const dfRes = await callSui("suix_getDynamicFields", [ssuId]);
+        const dfList = dfRes.result?.data || [];
+
+        // Cherche le champ inventaire : soit par cap.objectId, soit le premier disponible
+        let invField = dfList.find(f => f.name?.value === cap.data.objectId);
+        if (!invField && dfList.length > 0) invField = dfList[0]; // fallback sur le 1er champ
+
+        let items = [];
+        let usedCap = 0;
+        if (invField) {
+          const invObj = await callSui("sui_getObject", [invField.objectId, { showContent: true }]);
+          if (invObj.result?.data) {
+            const inv = invObj.result.data.content.fields?.value?.fields;
+            if (inv) {
+              usedCap = parseInt(inv.used_capacity || '0');
+              const contents = inv.items?.fields?.contents || [];
+              for (const item of contents) {
+                const d = item.fields?.value?.fields;
+                if (!d) continue;
+                const tname = await getItemName(d.type_id);
+                items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
+                ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
+              }
+            }
           }
         }
-      }
 
-      ssuCards.push({ name: ssuName, id: ssuId, items, maxCap, usedCap });
+        ssuCards.push({ name: ssuName, id: ssuId, items, maxCap, usedCap });
+      } catch(capErr) {
+        addLog(`⚠️ SSU ${capIdx+1} erreur : ${capErr.message}`, '#d29922');
+      }
     }
 
     // Rendu des cartes SSU
