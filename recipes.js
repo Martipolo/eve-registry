@@ -33,7 +33,7 @@ const RECIPES = {
     ]
   },
   reinforced_alloys: {
-    name: "Reinforced Alloys", batch: 14, machine: "Printer S",
+    name: "Reinforced Alloys", batch: 14, machine: "Refinery M",
     inputs: [
       { name: "Nickel-Iron Veins",  qty: 1050 },
       { name: "Feldspar Crystal Shards",  qty: 1050 },
