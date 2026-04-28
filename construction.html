@@ -155,21 +155,20 @@ function calcCraft() {
     </div>`;
   }).join('');
 
-  // ── T1 ──
+  // ── T1 : raffinés à utiliser ──
+  // Affiche : "raffiner X Iron-Rich Nodules → obtient Y Platinum-Group Veins"
   const t1html = Object.entries(r.t1).map(([name, d]) => {
-    const cls  = d.stock >= d.needed ? 'ok' : d.stock > 0 ? 'partial' : 'need';
-    const info = d.batches > 0
-      ? `→ crafter ${d.actualCraft} (${d.batches} batch${d.batches > 1 ? 'es' : ''})`
-      : '✓ stock suffisant';
-    return `<div class="mat-row" style="grid-template-columns:1fr 160px 120px">
+    const produces = (d.produces || []).map(p =>
+      `→ ${p.qty} ${esc(p.t0)}`
+    ).join(' + ');
+    return `<div class="mat-row" style="grid-template-columns:1fr 160px">
       <div class="mat-name">
-        ${esc(name)}
-        <span style="font-size:9px;color:${d.batches > 0 ? 'var(--text3)' : 'var(--green)'}">
-          ${info}
-        </span>
+        Raffiner <strong>${d.actualCraft}× ${esc(name)}</strong>
+        <span style="font-size:9px;color:var(--green);display:block;margin-top:2px">${produces}</span>
       </div>
-      <div class="mat-qty need">${d.needed}</div>
-      <div class="mat-qty ${cls}">${hasChar ? d.stock.toLocaleString() : '—'}</div>
+      <div class="mat-qty need">
+        ${d.batches} batch${d.batches > 1 ? 'es' : ''}
+      </div>
     </div>`;
   }).join('');
   document.getElementById('craftT1').innerHTML = t1html ||
