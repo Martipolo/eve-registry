@@ -125,8 +125,8 @@ Then add the option in `construction.html`:
 ## Local Development
 
 ```bash
-git clone https://github.com/Martipolo/eve-registry.git
-cd eve-registry
+git clone https://github.com/Martipolo/ef-mining-planner.git
+cd ef-mining-planner
 
 # Run the scraper to regenerate database.json
 node scraper.js
