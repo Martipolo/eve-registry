@@ -86,12 +86,12 @@ async function getOwnedObjects(wallet, addLog) {
 
 // ── Scan complet des SSU d'un personnage ─────────────────────────
 async function scanSSU(ownerWallet, addLog) {
-  addLog(`Scan de wallet : ${ownerWallet.slice(0, 20)}...`);
+  addLog(`Scanning wallet: ${ownerWallet.slice(0, 20)}...`);
 
   // 1. Tous les objets du wallet
   const allObjects = await getOwnedObjects(ownerWallet, addLog);
   const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
-  addLog(`${allObjects.length} objets scannés → ${caps.length} clé(s) de stockage trouvée(s).`);
+  addLog(`${allObjects.length} objects scanned → ${caps.length} storage key(s) found.`);
 
   if (caps.length === 0) return { ssuCards: [], stock: {} };
 
@@ -104,11 +104,11 @@ async function scanSSU(ownerWallet, addLog) {
 
     try {
       const ssuId = cap.data?.content?.fields?.authorized_object_id;
-      if (!ssuId) { addLog(`⚠️ Cap ${i+1} : pas d'authorized_object_id`, '#d29922'); continue; }
+      if (!ssuId) { addLog(`⚠️ Cap ${i+1} : no authorized_object_id`, '#d29922'); continue; }
 
       // 2. Lire l'objet SSU
       const ssuObj = await callSui("sui_getObject", [ssuId, { showContent: true }]);
-      if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... introuvable`, '#d29922'); continue; }
+      if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... not found`, '#d29922'); continue; }
 
       const fields    = ssuObj.result.data.content.fields;
       const ssuName   = fields.metadata?.fields?.name || `Storage Unit ${i + 1}`;
