@@ -546,16 +546,15 @@ async function loadDashboard(char) {
     logEl.scrollTop = logEl.scrollHeight;
   };
 
-  // Le champ 'address' de database.json = Sui Object ID du PlayerProfile
-  // Ce PlayerProfile possède un champ 'character_id' qui est le vrai wallet owner
-  // C'est le character_id qu'on doit passer à suix_getOwnedObjects
-  const playerProfileId = char.address;
+  // char.address = wallet Sui du joueur (= character_id dans le PlayerProfile)
+  // C'est directement cette adresse qu'on passe à suix_getOwnedObjects
+  const ownerWallet = char.address;
 
-  addLog(`PlayerProfile ID : ${playerProfileId}`, '#58a6ff');
+  addLog(`Wallet owner : ${ownerWallet}`, '#58a6ff');
 
-  if (!playerProfileId) {
-    setStatus('dash', 'err', 'ID introuvable');
-    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Adresse PlayerProfile introuvable</div></div>`;
+  if (!ownerWallet) {
+    setStatus('dash', 'err', 'Adresse introuvable');
+    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Adresse wallet introuvable dans database.json</div></div>`;
     return;
   }
 
@@ -565,18 +564,12 @@ async function loadDashboard(char) {
   try {
     addLog(`Scan de : ${char.name}`);
 
-    // 1. Lire le PlayerProfile pour récupérer le character_id (= vrai wallet owner)
-    const profileObj = await callSui("sui_getObject", [playerProfileId, { showContent: true }]);
-    const characterId = profileObj.result?.data?.content?.fields?.character_id;
-    if (!characterId) throw new Error(`character_id introuvable dans le PlayerProfile ${playerProfileId.slice(0,14)}...`);
-    addLog(`character_id (owner wallet) : ${characterId.slice(0,20)}...`);
-
-    // 2. Récupérer TOUS les objets de ce wallet, puis filtrer sur TARGET_TYPE
-    // Identique au scanner_ekno.html qui fonctionne
+    // Récupérer TOUS les objets du wallet, puis filtrer manuellement sur TARGET_TYPE
+    // (même logique que scanner_ekno.html qui fonctionne)
     let allObjects = [];
     let cursor = null;
     do {
-      const params = [characterId, { options: { showContent: true, showType: true } }];
+      const params = [ownerWallet, { options: { showContent: true, showType: true } }];
       if (cursor) params[1].cursor = cursor;
       const page = await callSui("suix_getOwnedObjects", params);
       const data = page.result?.data || [];
