@@ -94,21 +94,21 @@ const INTERMEDIAIRES = {
 // ─────────────────────────────────────────────────────────────────
 const MATRICES = {
   "Platinum-Palladium Matrix": {
-    batch: 40, asteroid: "SLAG", volume: 100,
+    batch: 40, asteroid: "SLAG", volume: 1,
     outputs: [
       { name: "Silica Grains",     qty: 10 },
       { name: "Iron-Rich Nodules", qty: 30 },
     ]
   },
   "Hydrated Sulfide Matrix": {
-    batch: 40, asteroid: "COMET", volume: 10,
+    batch: 40, asteroid: "COMET", volume: 1,
     outputs: [
       { name: "Hydrocarbon Residue", qty:  20 },
       { name: "Water Ice",           qty: 200 },
     ]
   },
   "Feldspar Crystals": {
-    batch: 40, asteroid: "CHAR", volume: 10,
+    batch: 40, asteroid: "CHAR", volume: 1,
     outputs: [
       { name: "Hydrocarbon Residue", qty: 10 },
       { name: "Silica Grains",       qty: 30 },
@@ -194,28 +194,35 @@ function computeCraft(recipeKey, wantedQty) {
   }
 
   // ── ÉTAPE 1 : matrices à miner ─────────────────────────────────
-  // Pour chaque intermédiaire manquant, trouver la matrice qui le produit
-  const matrixBatches = {}; // { nom_matrice: batches_necessaires }
+  // Pour chaque intermédiaire manquant, choisir la MEILLEURE matrice source
+  // (celle qui produit le plus de cet intermédiaire par batch = moins de voyages)
+  // Chaque intermédiaire est traité indépendamment.
 
   for (const [interName, interData] of Object.entries(result.intermediaires)) {
     if (interData.manque <= 0) continue;
+
+    // Trouver toutes les matrices qui produisent cet intermédiaire
+    let best = null;
     for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
       const out = matrixRec.outputs.find(o => o.name === interName);
       if (!out) continue;
-      const b = Math.ceil(interData.manque / out.qty);
-      matrixBatches[matrixName] = Math.max(matrixBatches[matrixName] || 0, b);
+      const batches = Math.ceil(interData.manque / out.qty);
+      // Choisir celle qui demande le moins de batches (= produit le plus par batch)
+      if (!best || batches < best.batches) {
+        best = { matrixName, batches, rec: matrixRec };
+      }
     }
-  }
+    if (!best) continue;
 
-  for (const [matrixName, batches] of Object.entries(matrixBatches)) {
-    if (batches === 0) continue;
-    const rec     = MATRICES[matrixName];
-    const toMine  = batches * rec.batch;
-    const inStock = stock[matrixName] || 0;
-    const manque  = Math.max(0, toMine - inStock);
-    result.matrices[matrixName] = {
+    // Ajouter ou prendre le max si déjà calculé (cas où 2 intermédiaires viennent de la même matrice)
+    const existing = result.matrices[best.matrixName];
+    const batches  = existing ? Math.max(existing.batches, best.batches) : best.batches;
+    const toMine   = batches * best.rec.batch;
+    const inStock  = stock[best.matrixName] || 0;
+    const manque   = Math.max(0, toMine - inStock);
+    result.matrices[best.matrixName] = {
       toMine, inStock, manque, batches,
-      asteroid: rec.asteroid, volume: rec.volume
+      asteroid: best.rec.asteroid, volume: best.rec.volume
     };
   }
 
