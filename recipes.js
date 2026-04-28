@@ -32,6 +32,13 @@ const RECIPES = {
       { name: "Thermal Composites", qty: 65 },
     ]
   },
+  reinforced_alloys: {
+    name: "Reinforced Alloys", batch: 14, machine: "Printer S",
+    inputs: [
+      { name: "Nickel-Iron Veins",  qty: 1050 },
+      { name: "Feldspar Crystal Shards",  qty: 1050 },
+    ]
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────
