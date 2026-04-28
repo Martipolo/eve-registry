@@ -15,7 +15,6 @@
     <p class="subtitle">CRAFT CALCULATOR <span>///</span> MINING PLANNER</p>
   </div>
 
-  <!-- Formulaire -->
   <div class="panel cut">
     <div class="panel-label">OBJECTIF</div>
     <div class="craft-form">
@@ -27,76 +26,73 @@
       </div>
       <div class="form-group">
         <label>Quantité voulue</label>
-        <input type="number" id="craftQty" value="10" min="1" max="9999"
-               style="padding-left:12px">
+        <input type="number" id="craftQty" value="10" min="1" max="9999" style="padding-left:12px">
       </div>
       <button class="btn" onclick="calcCraft()">Calculer</button>
     </div>
     <div class="soute-row">
       <label>Capacité de soute (unités) :</label>
-      <input type="number" id="craftSoute" value="990" min="1"
-             style="width:120px;padding-left:12px">
+      <input type="number" id="craftSoute" value="990" min="1" style="width:120px;padding-left:12px">
     </div>
     <p class="hint" style="margin-top:8px" id="stockHint">
       // connecte-toi via le registry pour voir ton stock en temps réel
     </p>
   </div>
 
-  <!-- Résultat -->
   <div class="craft-result" id="craftResult">
 
-    <!-- T3 -->
+    <!-- Étape 4 : Produit final -->
     <div class="tier-block">
-      <div class="tier-title">TIER 3 — <span>PRODUIT FINAL</span></div>
+      <div class="tier-title">ÉTAPE 4 — <span>PRODUIT FINAL</span></div>
       <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 180px 120px">
+        <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
           <span>Item</span><span style="text-align:right">À produire</span><span style="text-align:right">Stock</span>
         </div>
-        <div id="craftT3"></div>
+        <div id="craftFinal"></div>
       </div>
     </div>
 
-    <!-- T2 : Composants intermédiaires -->
+    <!-- Étape 3 : Composants -->
     <div class="tier-block">
-      <div class="tier-title">TIER 2 — <span>COMPOSANTS À CRAFTER</span></div>
+      <div class="tier-title">ÉTAPE 3 — <span>COMPOSANTS À CRAFTER</span></div>
       <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 180px 120px">
-          <span>Composant</span><span style="text-align:right">Requis → à crafter</span><span style="text-align:right">Stock</span>
+        <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
+          <span>Composant</span><span style="text-align:right">Besoin → à crafter</span><span style="text-align:right">Stock</span>
         </div>
-        <div id="craftT2"></div>
+        <div id="craftComposants"></div>
       </div>
     </div>
 
-    <!-- T0_MATS : Matières raffinées -->
+    <!-- Matières brutes consommées -->
     <div class="tier-block">
-      <div class="tier-title">MATIÈRES RAFFINÉES — <span>CONSOMMÉES PAR LES T2</span></div>
+      <div class="tier-title">MATIÈRES BRUTES — <span>CONSOMMÉES PAR LES COMPOSANTS</span></div>
       <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Matière raffinée</span><span style="text-align:right">Nécessaire</span><span style="text-align:right">Stock</span>
+        <div class="tbl-head" style="grid-template-columns:1fr 130px 110px">
+          <span>Matière brute</span><span style="text-align:right">Nécessaire</span><span style="text-align:right">Stock</span>
         </div>
-        <div id="craftT0mats"></div>
+        <div id="craftMatieres"></div>
       </div>
     </div>
 
-    <!-- T1_INTER : Matières intermédiaires -->
+    <!-- Étape 2 : Intermédiaires -->
     <div class="tier-block">
-      <div class="tier-title">MATIÈRES INTERMÉDIAIRES — <span>À RAFFINER</span></div>
+      <div class="tier-title">ÉTAPE 2 — <span>INTERMÉDIAIRES À RAFFINER</span></div>
       <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 180px 120px">
+        <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
           <span>Intermédiaire</span><span style="text-align:right">À raffiner → produit</span><span style="text-align:right">Stock</span>
         </div>
-        <div id="craftT1inter"></div>
+        <div id="craftInter"></div>
       </div>
     </div>
 
-    <!-- T0_RAW : Matières premières brutes -->
+    <!-- Étape 1 : Matrices à miner -->
     <div class="tier-block">
-      <div class="tier-title">MATIÈRES PREMIÈRES — <span>À MINER</span></div>
+      <div class="tier-title">ÉTAPE 1 — <span>MATRICES À MINER</span></div>
       <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 80px 120px 120px">
+        <div class="tbl-head" style="grid-template-columns:1fr 80px 130px 110px">
           <span>Matrice</span><span>Astéroïde</span><span style="text-align:right">À miner</span><span style="text-align:right">Stock</span>
         </div>
-        <div id="craftT0raw"></div>
+        <div id="craftMatrices"></div>
       </div>
     </div>
 
@@ -107,7 +103,6 @@
     </div>
 
   </div>
-
 </div>
 
 <script src="nav.js"></script>
@@ -116,91 +111,92 @@
 injectNav('construction');
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (window.selChar) {
+  if (window.selChar)
     document.getElementById('stockHint').innerHTML =
       `// stocks de <span style="color:var(--accent)">${esc(window.selChar.name)}</span> pris en compte`;
-  }
 });
+
+const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
 
 function calcCraft() {
   const itemKey = document.getElementById('craftItem').value;
-  const qty     = parseInt(document.getElementById('craftQty').value)    || 10;
-  const soute   = parseInt(document.getElementById('craftSoute').value)  || 990;
+  const qty     = parseInt(document.getElementById('craftQty').value)   || 10;
+  const soute   = parseInt(document.getElementById('craftSoute').value) || 990;
   const hasChar = !!window.selChar;
+  const stk     = v => hasChar ? v.toLocaleString() : '—';
+  const cls     = (inStock, needed) => inStock >= needed ? 'ok' : inStock > 0 ? 'partial' : 'need';
 
   const r = computeCraft(itemKey, qty);
   if (!r) return;
   document.getElementById('craftResult').classList.add('visible');
 
-  const stk = (v) => hasChar ? v.toLocaleString() : '—';
-  const cls = (inStock, needed) =>
-    inStock >= needed ? 'ok' : inStock > 0 ? 'partial' : 'need';
-
-  // ── T3 ──────────────────────────────────────────────────────────
-  document.getElementById('craftT3').innerHTML = `
-    <div class="mat-row" style="grid-template-columns:1fr 180px 120px">
+  // ── Étape 4 : Produit final ──────────────────────────────────
+  document.getElementById('craftFinal').innerHTML = `
+    <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
       <div class="mat-name">${esc(r.final.name)}</div>
       <div class="mat-qty need">
         ${r.final.needed}
-        <span style="font-size:9px;color:var(--text3)">
-          (${r.final.batches} batch${r.final.batches > 1 ? 'es' : ''})
-        </span>
+        <span style="font-size:9px;color:var(--text3)"> (${r.final.batches} batch${r.final.batches>1?'es':''})</span>
       </div>
       <div class="mat-qty">—</div>
     </div>`;
 
-  // ── T2 ──────────────────────────────────────────────────────────
-  document.getElementById('craftT2').innerHTML = Object.entries(r.t2).map(([name, d]) => `
-    <div class="mat-row" style="grid-template-columns:1fr 180px 120px">
-      <div class="mat-name">${esc(name)}</div>
-      <div class="mat-qty need">
-        ${d.needed}
-        ${d.batches > 0
-          ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.actualCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
-          : `<span style="font-size:9px;color:var(--green)"> ✓ stock OK</span>`}
-      </div>
-      <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
-    </div>`).join('');
+  // ── Étape 3 : Composants ─────────────────────────────────────
+  document.getElementById('craftComposants').innerHTML =
+    Object.entries(r.composants).map(([name, d]) => `
+      <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
+        <div class="mat-name">${esc(name)}</div>
+        <div class="mat-qty need">
+          ${d.needed}
+          ${d.batches > 0
+            ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.toCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
+            : `<span style="font-size:9px;color:var(--green)"> ✓ stock OK</span>`}
+        </div>
+        <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
+      </div>`).join('');
 
-  // ── T0_MATS ─────────────────────────────────────────────────────
-  document.getElementById('craftT0mats').innerHTML = Object.entries(r.t0_mats).map(([name, d]) => `
-    <div class="mat-row" style="grid-template-columns:1fr 120px 120px">
-      <div class="mat-name">${esc(name)}</div>
-      <div class="mat-qty need">${d.needed.toLocaleString()}</div>
-      <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
-    </div>`).join('') ||
-    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
+  // ── Matières brutes ──────────────────────────────────────────
+  document.getElementById('craftMatieres').innerHTML =
+    Object.entries(r.matieres).map(([name, d]) => `
+      <div class="mat-row" style="grid-template-columns:1fr 130px 110px">
+        <div class="mat-name">${esc(name)}</div>
+        <div class="mat-qty need">${d.needed.toLocaleString()}</div>
+        <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
+      </div>`).join('')
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
 
-  // ── T1_INTER ─────────────────────────────────────────────────────
-  document.getElementById('craftT1inter').innerHTML = Object.entries(r.t1_inter).map(([name, d]) => {
-    const produces = d.produces.map(p => `${p.qty.toLocaleString()}× ${esc(p.name)}`).join(' + ');
-    return `<div class="mat-row" style="grid-template-columns:1fr 180px 120px">
-      <div class="mat-name">${esc(name)}</div>
-      <div class="mat-qty need">
-        ${d.actualCraft.toLocaleString()}
-        <span style="font-size:9px;color:var(--green);display:block">→ ${produces}</span>
-      </div>
-      <div class="mat-qty ${d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
-    </div>`;
-  }).join('') ||
-    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Rien à raffiner</div></div>`;
+  // ── Étape 2 : Intermédiaires ─────────────────────────────────
+  document.getElementById('craftInter').innerHTML =
+    Object.entries(r.intermediaires).map(([name, d]) => {
+      const prod = d.produces.map(p => `${p.qty.toLocaleString()}× ${esc(p.name)}`).join(' + ');
+      return `
+        <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
+          <div class="mat-name">${esc(name)}</div>
+          <div class="mat-qty need">
+            ${d.toUse.toLocaleString()}
+            <span style="font-size:9px;color:var(--green);display:block">→ ${prod}</span>
+          </div>
+          <div class="mat-qty ${d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
+        </div>`;
+    }).join('')
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Rien à raffiner</div></div>`;
 
-  // ── T0_RAW ──────────────────────────────────────────────────────
-  const astColors = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
-  document.getElementById('craftT0raw').innerHTML = Object.entries(r.t0_raw).map(([name, d]) => `
-    <div class="mat-row" style="grid-template-columns:1fr 80px 120px 120px">
-      <div class="mat-name">${esc(name)}</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${astColors[d.asteroid]||'var(--text3)'}">
-        ${esc(d.asteroid)}
-      </div>
-      <div class="mat-qty ${d.toMineNet > 0 ? 'need' : 'ok'}">
-        ${d.toMineNet > 0 ? d.toMineNet.toLocaleString() : '✓ OK'}
-      </div>
-      <div class="mat-qty ${d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
-    </div>`).join('') ||
-    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Rien à miner</div></div>`;
+  // ── Étape 1 : Matrices ───────────────────────────────────────
+  document.getElementById('craftMatrices').innerHTML =
+    Object.entries(r.matrices).map(([name, d]) => `
+      <div class="mat-row" style="grid-template-columns:1fr 80px 130px 110px">
+        <div class="mat-name">${esc(name)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${AST_COLORS[d.asteroid]||'var(--text3)'}">
+          ${esc(d.asteroid)}
+        </div>
+        <div class="mat-qty ${d.manque > 0 ? 'need' : 'ok'}">
+          ${d.manque > 0 ? d.manque.toLocaleString() : '✓ OK'}
+        </div>
+        <div class="mat-qty ${d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
+      </div>`).join('')
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Rien à miner</div></div>`;
 
-  // ── Plan de minage ───────────────────────────────────────────────
+  // ── Plan de minage ───────────────────────────────────────────
   if (Object.keys(r.byAsteroid).length === 0) {
     document.getElementById('craftTrips').innerHTML = `
       <div class="trip-card" style="border-left-color:var(--green)">
@@ -212,8 +208,8 @@ function calcCraft() {
     return;
   }
 
-  document.getElementById('craftTrips').innerHTML = Object.entries(r.byAsteroid)
-    .map(([ast, mats]) => {
+  document.getElementById('craftTrips').innerHTML =
+    Object.entries(r.byAsteroid).map(([ast, mats]) => {
       const lines = mats.map(m => {
         const perTrip = Math.floor(soute / m.volume);
         const trips   = perTrip > 0 ? Math.ceil(m.toMine / perTrip) : '∞';
@@ -221,14 +217,15 @@ function calcCraft() {
       });
       const maxTrips = Math.max(...lines.map(l => typeof l.trips === 'number' ? l.trips : 0));
       const detail   = lines.map(l =>
-        `${esc(l.name)} : ${l.toMine.toLocaleString()} à miner (${l.perTrip}/voyage → ${l.trips} voyage${l.trips>1?'s':''})`
+        `${esc(l.name)} : ${l.toMine.toLocaleString()} à miner (${l.perTrip.toLocaleString()}/voyage → ${l.trips} voyage${l.trips>1?'s':''})`
       ).join('<br>');
+      const col = AST_COLORS[ast] || 'var(--gold)';
       return `
-        <div class="trip-card" style="border-left-color:${astColors[ast]||'var(--gold)'}">
-          <div class="trip-asteroid" style="color:${astColors[ast]||'var(--gold)'}">${esc(ast)}</div>
+        <div class="trip-card" style="border-left-color:${col}">
+          <div class="trip-asteroid" style="color:${col}">${esc(ast)}</div>
           <div class="trip-resource">${lines.map(l => esc(l.name)).join(', ')}</div>
           <div class="trip-count">${maxTrips}</div>
-          <div class="trip-label">aller-retour${maxTrips > 1 ? 's' : ''} de minage</div>
+          <div class="trip-label">aller-retour${maxTrips>1?'s':''} de minage</div>
           <div class="trip-detail">${detail}</div>
         </div>`;
     }).join('');
