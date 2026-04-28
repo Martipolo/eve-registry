@@ -593,50 +593,79 @@ async function loadDashboard(char) {
 
     for (let capIdx = 0; capIdx < caps.length; capIdx++) {
       const cap = caps[capIdx];
-      addLog(`SSU ${capIdx+1}/${caps.length} en cours...`);
+      addLog(`SSU ${capIdx+1}/${caps.length}...`);
 
       try {
         const ssuId = cap.data?.content?.fields?.authorized_object_id;
         if (!ssuId) { addLog(`⚠️ Cap ${capIdx+1} : pas d'authorized_object_id`, '#d29922'); continue; }
 
-        // Infos du SSU
+        // 1. Lire l'objet SSU
         const ssuObj = await callSui("sui_getObject", [ssuId, { showContent: true }]);
         if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... introuvable`, '#d29922'); continue; }
 
         const fields = ssuObj.result.data.content.fields;
-        const ssuName = fields.metadata?.fields?.name || fields.name || `Storage Unit ${capIdx+1}`;
-        const maxCap  = parseInt(fields.max_capacity || fields.capacity || '2000000');
-        addLog(`✓ ${ssuName}`);
+        const ssuName   = fields.metadata?.fields?.name || `Storage Unit ${capIdx+1}`;
+        const statusVar = fields.status?.fields?.status?.variant || 'UNKNOWN';
+        const typeId    = fields.type_id || '';
+        addLog(`✓ ${ssuName} [${statusVar}]`);
 
-        // Dynamic Fields → inventaire
-        const dfRes = await callSui("suix_getDynamicFields", [ssuId]);
-        const dfList = dfRes.result?.data || [];
-
-        // Cherche le champ inventaire : soit par cap.objectId, soit le premier disponible
-        let invField = dfList.find(f => f.name?.value === cap.data.objectId);
-        if (!invField && dfList.length > 0) invField = dfList[0]; // fallback sur le 1er champ
+        // 2. Lire les inventory_keys directement depuis le SSU
+        //    inventory_keys = liste des Object IDs des inventaires
+        const invKeys = fields.inventory_keys || [];
 
         let items = [];
         let usedCap = 0;
-        if (invField) {
-          const invObj = await callSui("sui_getObject", [invField.objectId, { showContent: true }]);
-          if (invObj.result?.data) {
-            const inv = invObj.result.data.content.fields?.value?.fields;
-            if (inv) {
-              usedCap = parseInt(inv.used_capacity || '0');
-              const contents = inv.items?.fields?.contents || [];
-              for (const item of contents) {
-                const d = item.fields?.value?.fields;
-                if (!d) continue;
-                const tname = await getItemName(d.type_id);
-                items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
-                ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
-              }
+        let maxCap = 2000000;
+
+        if (invKeys.length > 0) {
+          // Lire chaque inventaire directement par son ID
+          for (const invKey of invKeys) {
+            const invId = typeof invKey === 'string' ? invKey : invKey?.fields?.id || invKey?.id;
+            if (!invId) continue;
+
+            const invObj = await callSui("sui_getObject", [invId, { showContent: true }]);
+            const invFields = invObj.result?.data?.content?.fields;
+            if (!invFields) continue;
+
+            usedCap += parseInt(invFields.used_capacity || '0');
+            maxCap   = parseInt(invFields.max_capacity  || '2000000');
+            const contents = invFields.items?.fields?.contents || [];
+            for (const item of contents) {
+              const d = item.fields?.value?.fields;
+              if (!d) continue;
+              const tname = await getItemName(d.type_id);
+              items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
+              ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
+            }
+          }
+        } else {
+          // Fallback : dynamic fields (ancien comportement)
+          const dfRes  = await callSui("suix_getDynamicFields", [ssuId]);
+          const dfList = dfRes.result?.data || [];
+          // Cherche les champs de type Inventory
+          const invFields2 = dfList.filter(f =>
+            f.objectType?.includes('inventory::Inventory') ||
+            f.name?.value === cap.data.objectId
+          );
+          for (const df of invFields2) {
+            const invObj = await callSui("sui_getObject", [df.objectId, { showContent: true }]);
+            const inv = invObj.result?.data?.content?.fields?.value?.fields
+                     || invObj.result?.data?.content?.fields;
+            if (!inv) continue;
+            usedCap += parseInt(inv.used_capacity || '0');
+            maxCap   = parseInt(inv.max_capacity  || '2000000');
+            const contents = inv.items?.fields?.contents || [];
+            for (const item of contents) {
+              const d = item.fields?.value?.fields;
+              if (!d) continue;
+              const tname = await getItemName(d.type_id);
+              items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
+              ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
             }
           }
         }
 
-        ssuCards.push({ name: ssuName, id: ssuId, items, maxCap, usedCap });
+        ssuCards.push({ name: ssuName, id: ssuId, items, maxCap, usedCap, status: statusVar, typeId });
       } catch(capErr) {
         addLog(`⚠️ SSU ${capIdx+1} erreur : ${capErr.message}`, '#d29922');
       }
@@ -647,23 +676,33 @@ async function loadDashboard(char) {
     grid.className = 'ssu-grid';
 
     for (const ssu of ssuCards) {
-      const pct = ssu.maxCap > 0 ? Math.round(ssu.usedCap / ssu.maxCap * 100) : 0;
-      const div = document.createElement('div');
-      div.className = 'ssu-card';
-      let itemsHtml = ssu.items.length === 0
-        ? `<div class="ssu-empty">Vide</div>`
-        : ssu.items.sort((a,b) => b.qty - a.qty).map(it => `
-          <div class="item-row">
-            <span class="item-name">${esc(it.name)}</span>
-            <span class="item-qty">${it.qty.toLocaleString()}</span>
-          </div>`).join('');
+      const pct      = ssu.maxCap > 0 ? Math.round(ssu.usedCap / ssu.maxCap * 100) : 0;
+      const isOnline = ssu.status === 'ONLINE';
+      const div      = document.createElement('div');
+      div.className  = 'ssu-card';
 
+      const statusBadge = `<span style="
+        font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;
+        padding:2px 7px;border:1px solid ${isOnline ? 'var(--green)' : 'var(--text3)'};
+        color:${isOnline ? 'var(--green)' : 'var(--text3)'};
+        margin-left:8px;vertical-align:middle;
+      ">${ssu.status||'?'}</span>`;
+
+      let itemsHtml = ssu.items.length === 0
+        ? `<div class="ssu-empty">${isOnline ? 'Vide' : 'Hors ligne — inventaire non accessible'}</div>`
+        : ssu.items.sort((a,b) => b.qty - a.qty).map(it => `
+            <div class="item-row">
+              <span class="item-name">${esc(it.name)}</span>
+              <span class="item-qty">${it.qty.toLocaleString()}</span>
+            </div>`).join('');
+
+      div.style.opacity = isOnline ? '1' : '0.6';
       div.innerHTML = `
         <div class="ssu-card-header">
-          <div class="ssu-card-name">${esc(ssuName2short(ssu.name))}</div>
+          <div class="ssu-card-name">${esc(ssuName2short(ssu.name))}${statusBadge}</div>
           <div class="ssu-card-id">${ssu.id.slice(0,20)}...</div>
         </div>
-        <div class="ssu-cap-bar"><div class="ssu-cap-fill" style="width:${pct}%"></div></div>
+        <div class="ssu-cap-bar"><div class="ssu-cap-fill" style="width:${pct}%;background:${isOnline ? '' : 'var(--text3)'}"></div></div>
         <div class="ssu-cap-text">${ssu.usedCap.toLocaleString()} / ${ssu.maxCap.toLocaleString()} unités (${pct}%)</div>
         ${itemsHtml}`;
       grid.appendChild(div);
