@@ -15,21 +15,19 @@
     <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
   </div>
 
-  <!-- Légende du flux -->
+  <!-- Flux visuel -->
   <div class="panel cut" style="margin-bottom:28px">
     <div class="panel-label">FLUX DE PRODUCTION</div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2.2;color:var(--text3)">
-      <span style="color:var(--gold)">ASTÉROÏDE</span>
-      → miner <span style="color:var(--gold)">Matrice brute (T0_RAW)</span>
-      → raffiner → <span style="color:var(--blue)">Intermédiaire (T1)</span>
-      → raffiner → <span style="color:var(--text2)">Matière raffinée (T0_MATS)</span>
-      → crafter → <span style="color:var(--accent)">Composant (T2)</span>
-      → crafter → <span style="color:#fff">Produit final (T3)</span>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2.4;color:var(--text3)">
+      <span style="color:var(--gold)">① MINER</span> Matrices brutes (SLAG / COMET / CHAR)
+      &nbsp;→&nbsp; <span style="color:var(--blue)">② RAFFINER</span> Intermédiaires (Silica Grains, Iron-Rich Nodules, Hydrocarbon Residue)
+      &nbsp;→&nbsp; <span style="color:var(--text2)">Matières brutes</span> (Nickel-Iron Veins, Tholin Aggregates, Feldspar Crystal Shards, Silicon Dust...)
+      &nbsp;→&nbsp; <span style="color:var(--accent)">③ CRAFTER</span> Composants (Reinforced Alloys, Carbon Weave, Thermal Composites)
+      &nbsp;→&nbsp; <span style="color:#fff">④ CRAFTER</span> Produit final (Building Foam)
     </div>
   </div>
 
   <div id="recipesContent"></div>
-
 </div>
 
 <script src="nav.js"></script>
@@ -38,106 +36,68 @@
 injectNav('recipes');
 window.addEventListener('DOMContentLoaded', renderRecipes);
 
+const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
+
 function renderRecipes() {
   const container = document.getElementById('recipesContent');
-
-  const sectionHeader = (label, color) =>
-    `<div style="font-family:'Share Tech Mono',monospace;font-size:11px;
-      padding:8px 14px;background:var(--bg3);
-      border-left:3px solid ${color};margin-bottom:8px;
-      display:flex;justify-content:space-between;align-items:center;color:#fff">`;
-
   let html = '';
 
-  // ════════════════════════════════════════════════════════════════
-  // T3 — Produits finis
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 3 — PRODUITS FINIS</div>`;
+  const card = (icon, title, sub, color, bodyHtml) => `
+    <div style="margin-bottom:18px">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
+        padding:8px 14px;background:var(--bg3);border-left:3px solid ${color};
+        display:flex;justify-content:space-between;align-items:center;margin-bottom:0">
+        <span style="color:#fff">${icon} ${esc(title)}</span>
+        <span style="color:var(--text3);font-size:9px">${sub}</span>
+      </div>
+      ${bodyHtml}
+    </div>`;
+
+  const ioTable = (rows, labelIn) => `
+    <div class="tbl-head" style="grid-template-columns:1fr 100px">
+      <span>${labelIn}</span><span style="text-align:right">Qté</span>
+    </div>
+    ${rows.map(r => `
+      <div class="mat-row" style="grid-template-columns:1fr 100px">
+        <div class="mat-name">${esc(r.name)}</div>
+        <div class="mat-qty" style="text-align:right;color:${r.color||'var(--gold2)'}">${r.qty}</div>
+      </div>`).join('')}`;
+
+  // ── Étape 4 : Produit final ──────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 4 — PRODUIT FINAL</div>`;
   for (const [, rec] of Object.entries(RECIPES)) {
-    html += `
-      <div style="margin-bottom:16px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);
-          display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="color:#fff">⚙ ${esc(rec.name)}</span>
-          <span style="color:var(--text3);font-size:9px">${rec.batch} unités / batch — via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 100px">
-          <span>Composant requis</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.inputs.map(i => `
-          <div class="mat-row" style="grid-template-columns:1fr 100px">
-            <div class="mat-name">${esc(i.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-          </div>`).join('')}
-      </div>`;
+    html += card('⚙', rec.name, `${rec.batch} unités / batch — via ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Composants requis'));
   }
   html += `</div>`;
 
-  // ════════════════════════════════════════════════════════════════
-  // T2 — Composants intermédiaires
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 2 — COMPOSANTS INTERMÉDIAIRES</div>`;
-  for (const [name, rec] of Object.entries(T2_RECIPES)) {
-    html += `
-      <div style="margin-bottom:16px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);
-          display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="color:#fff">🔧 ${esc(name)}</span>
-          <span style="color:var(--text3);font-size:9px">${rec.batch} unités / batch — via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 100px">
-          <span>Matière raffinée requise</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.inputs.map(i => `
-          <div class="mat-row" style="grid-template-columns:1fr 100px">
-            <div class="mat-name">${esc(i.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-          </div>`).join('')}
-      </div>`;
+  // ── Étape 3 : Composants ─────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 3 — COMPOSANTS À CRAFTER</div>`;
+  for (const [name, rec] of Object.entries(COMPOSANTS)) {
+    html += card('🔧', name, `${rec.batch} unités / batch — via ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Matières brutes requises'));
   }
   html += `</div>`;
 
-  // ════════════════════════════════════════════════════════════════
-  // T1 — Matières intermédiaires (raffinage → produit des T0_MATS)
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 1 — MATIÈRES INTERMÉDIAIRES (RAFFINAGE)</div>`;
-  for (const [name, rec] of Object.entries(T1_RECIPES)) {
-    html += `
-      <div style="margin-bottom:16px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--blue);
-          display:flex;justify-content:space-between;margin-bottom:8px">
-          <span style="color:#fff">⚗ ${esc(name)}</span>
-          <span style="color:var(--text3);font-size:9px">${rec.batch} unités raffinées → via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 100px">
-          <span>Output produit</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.outputs.map(o => `
-          <div class="mat-row" style="grid-template-columns:1fr 100px">
-            <div class="mat-name">${esc(o.name)}</div>
-            <div class="mat-qty ok" style="text-align:right">${o.qty}</div>
-          </div>`).join('')}
-      </div>`;
+  // ── Étape 2 : Intermédiaires ─────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 2 — INTERMÉDIAIRES (RAFFINAGE)</div>`;
+  for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
+    html += card('⚗', name, `${rec.batch} unités → via ${rec.machine}`, 'var(--blue)',
+      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), 'Matières brutes produites'));
   }
   html += `</div>`;
 
-  // ════════════════════════════════════════════════════════════════
-  // T0_RAW — Matrices brutes (minées, raffinent en T1)
-  const astColors = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
-  html += `<div class="panel cut" style="margin-bottom:24px">
-    <div class="panel-label">TIER 0 — MATRICES BRUTES (ASTÉROÏDES)</div>
-    <div class="tbl-head" style="grid-template-columns:1fr 80px 200px 60px">
+  // ── Étape 1 : Matrices brutes ─────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">ÉTAPE 1 — MATRICES BRUTES (ASTÉROÏDES)</div>
+    <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
       <span>Matrice</span><span>Astéroïde</span><span>Outputs (40 unités minées)</span><span style="text-align:right">Vol./u</span>
     </div>`;
-  for (const [name, rec] of Object.entries(T0_RAW_RECIPES)) {
-    const c = astColors[rec.asteroid] || 'var(--text3)';
+  for (const [name, rec] of Object.entries(MATRICES)) {
+    const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
     html += `
-      <div class="mat-row" style="grid-template-columns:1fr 80px 200px 60px;align-items:start;padding:10px 14px">
+      <div class="mat-row" style="grid-template-columns:1fr 80px 220px 60px;align-items:start;padding:10px 14px">
         <div class="mat-name">${esc(name)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${c}">${esc(rec.asteroid)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:${col}">${esc(rec.asteroid)}</div>
         <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green);line-height:1.8">
           ${rec.outputs.map(o => `${o.qty}× ${esc(o.name)}`).join('<br>')}
         </div>
