@@ -32,11 +32,32 @@ const RECIPES = {
       { name: "Thermal Composites", qty: 65 },
     ]
   },
+
+  // ── Composants craftables directement ──────────────────────────
+  // isSelfCraft: true = ce produit EST lui-même le composant final
+  // Le calculateur soustrait le stock existant avant de calculer les batches
   reinforced_alloys: {
     name: "Reinforced Alloys", batch: 14, machine: "Refinery M",
+    isSelfCraft: true,
     inputs: [
-      { name: "Nickel-Iron Veins",  qty: 1050 },
-      { name: "Feldspar Crystal Shards",  qty: 1050 },
+      { name: "Nickel-Iron Veins",       qty: 1050 },
+      { name: "Feldspar Crystal Shards", qty: 1050 },
+    ]
+  },
+  carbon_weave: {
+    name: "Carbon Weave", batch: 14, machine: "Refinery M",
+    isSelfCraft: true,
+    inputs: [
+      { name: "Tholin Aggregates", qty: 3150 },
+    ]
+  },
+  thermal_composites: {
+    name: "Thermal Composites", batch: 14, machine: "Refinery M",
+    isSelfCraft: true,
+    inputs: [
+      { name: "Silicon Dust",            qty:  630 },
+      { name: "Tholin Aggregates",       qty: 1260 },
+      { name: "Feldspar Crystal Shards", qty:  210 },
     ]
   },
 };
@@ -126,26 +147,86 @@ const MATRICES = {
 // ─────────────────────────────────────────────────────────────────
 // CALCULATEUR
 // ─────────────────────────────────────────────────────────────────
+
+// Fonctions partagées extraites pour éviter la duplication
+function _computeIntermediaires(result, stock) {
+  const t0mats = result.matieres;
+  for (const [matName, matData] of Object.entries(t0mats)) {
+    if (matData.manque <= 0) continue;
+    for (const [interName, interRec] of Object.entries(INTERMEDIAIRES)) {
+      const out = interRec.outputs.find(o => o.name === matName);
+      if (!out) continue;
+      const b = Math.ceil(matData.manque / out.qty);
+      const prev = result.intermediaires[interName];
+      if (!prev || b > prev.batches) {
+        const toUse    = b * interRec.batch;
+        const inStock  = stock[interName] || 0;
+        const manque   = Math.max(0, toUse - inStock);
+        const produces = interRec.outputs.map(o => ({ name: o.name, qty: o.qty * b }));
+        result.intermediaires[interName] = { toUse, inStock, manque, batches: b, produces, rec: interRec };
+      }
+    }
+  }
+}
+
+function _computeMatrices(result, stock) {
+  for (const [interName, interData] of Object.entries(result.intermediaires)) {
+    if (interData.manque <= 0) continue;
+    let best = null;
+    for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
+      const out = matrixRec.outputs.find(o => o.name === interName);
+      if (!out) continue;
+      const batches = Math.ceil(interData.manque / out.qty);
+      if (!best || batches < best.batches) best = { matrixName, batches, rec: matrixRec };
+    }
+    if (!best) continue;
+    const existing = result.matrices[best.matrixName];
+    const batches  = existing ? Math.max(existing.batches, best.batches) : best.batches;
+    const toMine   = batches * best.rec.batch;
+    const inStock  = stock[best.matrixName] || 0;
+    const manque   = Math.max(0, toMine - inStock);
+    result.matrices[best.matrixName] = { toMine, inStock, manque, batches, asteroid: best.rec.asteroid, volume: best.rec.volume };
+  }
+  for (const [name, data] of Object.entries(result.matrices)) {
+    if (data.manque <= 0) continue;
+    const ast = data.asteroid;
+    if (!result.byAsteroid[ast]) result.byAsteroid[ast] = [];
+    result.byAsteroid[ast].push({ name, toMine: data.manque, volume: data.volume });
+  }
+}
+
 function computeCraft(recipeKey, wantedQty) {
   const recipe = RECIPES[recipeKey];
   if (!recipe) return null;
   const stock = window.ssuStock || {};
 
-  // Utilitaire : arrondi au batch supérieur
-  const ceil = (needed, batch) => needed <= 0 ? 0 : Math.ceil(needed / batch) * batch;
-
   const result = {
-    final:         {},  // produit final
-    composants:    {},  // étape 3 : composants à crafter
-    matieres:      {},  // matières brutes nécessaires (inputs des composants)
-    intermediaires:{},  // étape 2 : intermédiaires à raffiner
-    matrices:      {},  // étape 1 : matrices à miner
-    byAsteroid:    {},  // regroupé par astéroïde pour les voyages
+    final: {}, composants: {}, matieres: {}, intermediaires: {}, matrices: {}, byAsteroid: {},
   };
 
-  // ── ÉTAPE 4 : produit final ─────────────────────────────────────
-  const finalBatches    = Math.ceil(wantedQty / recipe.batch);
-  const finalQty        = finalBatches * recipe.batch;
+  // ── CAS isSelfCraft : le produit est lui-même le composant final ─
+  // Ex: "je veux 80 Reinforced Alloys" → soustraire stock, calculer batches nets
+  if (recipe.isSelfCraft) {
+    const inStock = stock[recipe.name] || 0;
+    const manque  = Math.max(0, wantedQty - inStock);
+    const batches = Math.ceil(manque / recipe.batch);
+    const toCraft = batches * recipe.batch;
+    result.final  = { name: recipe.name, needed: wantedQty, inStock, manque, batches, toCraft };
+
+    // Les inputs sont les matières brutes consommées directement
+    for (const inp of recipe.inputs) {
+      const needed = inp.qty * batches;
+      const inStk  = stock[inp.name] || 0;
+      result.matieres[inp.name] = { needed, inStock: inStk, manque: Math.max(0, needed - inStk) };
+    }
+    _computeIntermediaires(result, stock);
+    _computeMatrices(result, stock);
+    return result;
+  }
+
+  // ── CAS NORMAL : produit final avec composants T2 ───────────────
+  const finalBatches = Math.ceil(wantedQty / recipe.batch);
+  const finalQty     = finalBatches * recipe.batch;
   result.final = { name: recipe.name, needed: finalQty, batches: finalBatches };
 
   // ── ÉTAPE 3 : composants à crafter ─────────────────────────────
@@ -173,75 +254,9 @@ function computeCraft(recipeKey, wantedQty) {
     result.matieres[name] = { needed, inStock, manque };
   }
 
-  // ── ÉTAPE 2 : intermédiaires à raffiner ────────────────────────
-  // Pour chaque matière brute manquante, trouver quel intermédiaire la produit
-  // Un intermédiaire peut produire plusieurs matières → prendre le max de batches
-  const interBatches = {}; // { nom_inter: batches_necessaires }
-
-  for (const [matName, matData] of Object.entries(result.matieres)) {
-    if (matData.manque <= 0) continue;
-    for (const [interName, interRec] of Object.entries(INTERMEDIAIRES)) {
-      const out = interRec.outputs.find(o => o.name === matName);
-      if (!out) continue;
-      // Batches nécessaires pour produire assez de cette matière
-      const b = Math.ceil(matData.manque / out.qty);
-      interBatches[interName] = Math.max(interBatches[interName] || 0, b);
-    }
-  }
-
-  for (const [interName, batches] of Object.entries(interBatches)) {
-    if (batches === 0) continue;
-    const rec      = INTERMEDIAIRES[interName];
-    const toUse    = batches * rec.batch; // quantité d'intermédiaire à raffiner
-    const inStock  = stock[interName] || 0;
-    const manque   = Math.max(0, toUse - inStock);
-    // Ce que ce raffinage va produire
-    const produces = rec.outputs.map(o => ({ name: o.name, qty: o.qty * batches }));
-    result.intermediaires[interName] = { toUse, inStock, manque, batches, produces, rec };
-  }
-
-  // ── ÉTAPE 1 : matrices à miner ─────────────────────────────────
-  // Pour chaque intermédiaire manquant, choisir la MEILLEURE matrice source
-  // (celle qui produit le plus de cet intermédiaire par batch = moins de voyages)
-  // Chaque intermédiaire est traité indépendamment.
-
-  for (const [interName, interData] of Object.entries(result.intermediaires)) {
-    if (interData.manque <= 0) continue;
-
-    // Trouver toutes les matrices qui produisent cet intermédiaire
-    let best = null;
-    for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
-      const out = matrixRec.outputs.find(o => o.name === interName);
-      if (!out) continue;
-      const batches = Math.ceil(interData.manque / out.qty);
-      // Choisir celle qui demande le moins de batches (= produit le plus par batch)
-      if (!best || batches < best.batches) {
-        best = { matrixName, batches, rec: matrixRec };
-      }
-    }
-    if (!best) continue;
-
-    // Ajouter ou prendre le max si déjà calculé (cas où 2 intermédiaires viennent de la même matrice)
-    const existing = result.matrices[best.matrixName];
-    const batches  = existing ? Math.max(existing.batches, best.batches) : best.batches;
-    const toMine   = batches * best.rec.batch;
-    const inStock  = stock[best.matrixName] || 0;
-    const manque   = Math.max(0, toMine - inStock);
-    result.matrices[best.matrixName] = {
-      toMine, inStock, manque, batches,
-      asteroid: best.rec.asteroid, volume: best.rec.volume
-    };
-  }
-
-  // ── Voyages par astéroïde ───────────────────────────────────────
-  for (const [matrixName, data] of Object.entries(result.matrices)) {
-    if (data.manque <= 0) continue;
-    const ast = data.asteroid;
-    if (!result.byAsteroid[ast]) result.byAsteroid[ast] = [];
-    result.byAsteroid[ast].push({
-      name: matrixName, toMine: data.manque, volume: data.volume
-    });
-  }
+  // ── ÉTAPES 2 & 1 : intermédiaires + matrices (fonctions partagées)
+  _computeIntermediaires(result, stock);
+  _computeMatrices(result, stock);
 
   return result;
 }
