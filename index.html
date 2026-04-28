@@ -1,207 +1,21 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EVE Frontier — Command Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<style>
-:root {
-  --bg:#050a12;--bg2:#080f1c;--bg3:#0a1628;
-  --accent:#f05a22;--accent2:#b33b12;--glow:#f05a2240;
-  --blue:#1a9fd4;--blue2:#0d6ea3;--blueglow:#1a9fd440;
-  --text:#c8dff0;--text2:#7ba8c8;--text3:#3d6a8a;
-  --border:#1a3a5c;--border2:#0f2440;
-  --gold:#d4a520;--gold2:#f0c040;
-  --red:#d43020;--green:#20c870;--card:#060d1a;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:
-  radial-gradient(1px 1px at 10% 20%,#fff2 0%,transparent 100%),
-  radial-gradient(1px 1px at 30% 70%,#fff1 0%,transparent 100%),
-  radial-gradient(1px 1px at 80% 15%,#fff2 0%,transparent 100%),
-  radial-gradient(1px 1px at 90% 75%,#fff1 0%,transparent 100%),
-  radial-gradient(1px 1px at 55% 90%,#fff1 0%,transparent 100%),
-  radial-gradient(2px 2px at 70% 40%,#f05a2215 0%,transparent 100%);
-  pointer-events:none;z-index:0;}
-
-/* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:#050a12ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 24px;height:52px;}
-.nav-logo{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-right:40px;}
-.nav-logo span{color:var(--text3);}
-.nav-tabs{display:flex;gap:4px;}
-.nav-tab{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:8px 20px;cursor:pointer;border:1px solid transparent;color:var(--text3);transition:all .2s;background:none;}
-.nav-tab:hover{color:var(--text);border-color:var(--border);}
-.nav-tab.active{color:var(--accent);border-color:var(--accent);background:#f05a220a;}
-.nav-char{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);letter-spacing:1px;display:none;align-items:center;gap:8px;}
-.nav-char.visible{display:flex;}
-.nav-char-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
-.nav-char-name{color:var(--text2);}
-.nav-char-x{cursor:pointer;color:var(--text3);padding:2px 6px;border:1px solid var(--border2);font-size:10px;}
-.nav-char-x:hover{color:var(--red);border-color:var(--red);}
-
-/* ── PAGES ── */
-.page{display:none;padding:72px 24px 80px;max-width:960px;margin:0 auto;}
-.page.active{display:block;}
-
-/* ── HEADER ── */
-.page-header{text-align:center;padding-bottom:36px;border-bottom:1px solid var(--border2);margin-bottom:32px;position:relative;}
-.page-header::after{content:'';position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:180px;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);}
-.logo-sym{display:inline-block;width:48px;height:48px;border:1px solid var(--accent);transform:rotate(45deg);margin-bottom:16px;position:relative;box-shadow:0 0 20px var(--glow),inset 0 0 8px var(--glow);}
-.logo-sym::before{content:'';position:absolute;inset:6px;border:1px solid var(--accent2);}
-h1{font-size:26px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:var(--text);margin-bottom:6px;}
-.subtitle{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
-.subtitle span{color:var(--accent);}
-
-/* ── PANEL ── */
-.panel{background:var(--card);border:1px solid var(--border);padding:20px 24px;margin-bottom:20px;position:relative;}
-.panel.cut{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);}
-.panel-label{position:absolute;top:-1px;left:20px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--accent);background:var(--card);padding:0 6px;transform:translateY(-50%);}
-
-/* ── STATUS ── */
-.status-bar{display:flex;align-items:center;gap:10px;margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;}
-.dot.on{background:var(--green);box-shadow:0 0 6px var(--green);}
-.dot.loading{background:var(--gold);animation:pulse 1s infinite;}
-.dot.err{background:var(--red);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.badge{display:inline-block;background:var(--bg3);border:1px solid var(--border);font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);padding:2px 8px;}
-
-/* ── INPUTS ── */
-.search-row{display:flex;gap:10px;align-items:stretch;}
-.input-wrap{flex:1;position:relative;}
-.input-wrap::before{content:'>';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:12px;}
-input[type=text],input[type=number],select{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:13px;padding:10px 12px 10px 28px;outline:none;transition:border-color .2s;height:42px;}
-input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--accent);box-shadow:0 0 10px var(--glow);}
-select{padding-left:12px;cursor:pointer;}
-select option{background:var(--bg3);}
-.btn{background:var(--accent2);border:1px solid var(--accent);color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:3px;text-transform:uppercase;padding:10px 22px;cursor:pointer;transition:all .2s;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);white-space:nowrap;height:42px;}
-.btn:hover{background:var(--accent);box-shadow:0 0 14px var(--glow);}
-.btn:active{transform:scale(.97);}
-.btn.blue{background:var(--blue2);border-color:var(--blue);}.btn.blue:hover{background:var(--blue);box-shadow:0 0 14px var(--blueglow);}
-.hint{margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;}
-
-/* ── TABLE ── */
-.tbl-head{display:grid;padding:7px 14px;border-bottom:1px solid var(--border2);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--text3);text-transform:uppercase;}
-.results-list{list-style:none;}
-.char-row{display:grid;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer;transition:all .15s;position:relative;align-items:center;}
-.char-row:hover{background:var(--bg3);}
-.char-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:transparent;transition:background .15s;}
-.char-row:hover::before{background:var(--accent);}
-.char-row.hl{background:#0a1f36;border-bottom-color:var(--blue);}
-.char-row.hl::before{background:var(--gold);box-shadow:0 0 8px var(--gold);}
-.char-idx{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);}
-.char-nm{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;color:var(--text);}
-.char-row:hover .char-nm,.char-row.hl .char-nm{color:#fff;}
-.char-id-cell{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);word-break:break-all;}
-.char-row:hover .char-id-cell{color:var(--blue);}
-
-/* ── SELECTED CARD ── */
-.sel-card{background:var(--card);border:1px solid var(--blue);box-shadow:0 0 20px var(--blueglow);padding:18px 24px;margin-bottom:20px;position:relative;clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));display:none;animation:fi .2s ease;}
-@keyframes fi{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
-.sel-card.visible{display:block;}
-.sel-card::before{content:'SELECTED CHARACTER';position:absolute;top:-1px;left:22px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--gold);background:var(--card);padding:0 6px;transform:translateY(-50%);}
-.sel-name{font-size:22px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#fff;margin-bottom:12px;}
-.sel-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.sel-field label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:3px;}
-.sel-field .val{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--blue);word-break:break-all;}
-.sel-field .val.gold{color:var(--gold2);font-size:12px;}
-.copy-btn{display:inline-block;margin-top:5px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);background:none;border:1px solid var(--border);padding:2px 8px;cursor:pointer;text-transform:uppercase;transition:all .15s;}
-.copy-btn:hover{border-color:var(--accent);color:var(--accent);}
-.open-dash-btn{margin-top:14px;display:inline-block;}
-
-/* ── EMPTY / SPINNER ── */
-.empty{text-align:center;padding:50px 0;color:var(--text3);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;}
-.empty .icon{font-size:28px;margin-bottom:12px;opacity:.3;}
-.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── DASHBOARD ── */
-.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
-.dash-title{font-size:20px;font-weight:700;letter-spacing:4px;text-transform:uppercase;}
-.back-btn{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);border:1px solid var(--border);padding:6px 14px;cursor:pointer;background:none;transition:all .15s;}
-.back-btn:hover{color:var(--accent);border-color:var(--accent);}
-
-.ssu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
-.ssu-card{background:var(--card);border:1px solid var(--border);border-top:3px solid var(--accent);padding:16px;}
-.ssu-card-header{margin-bottom:12px;}
-.ssu-card-name{font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#fff;}
-.ssu-card-id{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px;}
-.ssu-cap-bar{background:var(--bg3);height:4px;border-radius:2px;margin-bottom:12px;overflow:hidden;}
-.ssu-cap-fill{height:100%;background:linear-gradient(90deg,var(--blue2),var(--blue));transition:width .5s;}
-.ssu-cap-text{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:3px;margin-bottom:10px;}
-.item-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);}
-.item-row:last-child{border-bottom:none;}
-.item-name{font-size:13px;color:var(--text2);}
-.item-qty{font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);}
-.ssu-empty{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);text-align:center;padding:16px;opacity:.5;}
-
-.log-panel{background:#010409;border:1px solid #333;padding:8px 12px;font-family:monospace;font-size:10px;color:#7ee787;margin-bottom:16px;max-height:80px;overflow-y:auto;white-space:pre-wrap;}
-
-/* ── CRAFT PAGE ── */
-.craft-form{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;margin-bottom:16px;}
-.form-group label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:6px;}
-
-.craft-result{display:none;}
-.craft-result.visible{display:block;}
-
-.tier-block{margin-bottom:20px;}
-.tier-title{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border2);padding-bottom:8px;margin-bottom:12px;}
-.tier-title span{color:var(--accent);}
-
-.mat-row{display:grid;grid-template-columns:1fr 120px 120px;gap:0;padding:9px 14px;border-bottom:1px solid var(--border2);align-items:center;}
-.mat-row:hover{background:var(--bg3);}
-.mat-name{font-size:14px;font-weight:600;color:var(--text);}
-.mat-qty{font-family:'Share Tech Mono',monospace;font-size:13px;text-align:right;}
-.mat-qty.need{color:var(--gold2);}
-.mat-qty.ok{color:var(--green);}
-.mat-qty.partial{color:var(--accent);}
-
-.trip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:16px;}
-.trip-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--gold);padding:14px;}
-.trip-asteroid{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
-.trip-resource{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;}
-.trip-count{font-family:'Share Tech Mono',monospace;font-size:28px;font-weight:700;color:#fff;line-height:1;}
-.trip-label{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px;}
-.trip-detail{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px;border-top:1px solid var(--border2);padding-top:8px;}
-
-.soute-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
-.soute-row label{font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);white-space:nowrap;}
-.soute-input{width:120px;padding-left:12px !important;}
-
-/* ── FOOTER ── */
-footer{margin-top:60px;padding-top:16px;border-top:1px solid var(--border2);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;text-align:center;line-height:2.2;}
-footer span{color:var(--accent);}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVE Frontier — Registry</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="container">
 
-<!-- ══ NAV ══════════════════════════════════════════════════════════ -->
-<nav>
-  <div class="nav-logo">EVE<span>//</span>FRONTIER</div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="goPage('registry')">◈ Registry</button>
-    <button class="nav-tab" onclick="goPage('dashboard')" id="navDash">⬡ Dashboard</button>
-    <button class="nav-tab" onclick="goPage('craft')">⚙ Construction</button>
-    <button class="nav-tab" onclick="goPage('recipes')">📋 Recettes</button>
-  </div>
-  <div class="nav-char" id="navChar">
-    <div class="nav-char-dot"></div>
-    <span class="nav-char-name" id="navCharName">—</span>
-    <span class="nav-char-x" onclick="clearChar()" title="Déconnexion">✕</span>
-  </div>
-</nav>
-
-<!-- ══ PAGE 1 : REGISTRY ════════════════════════════════════════════ -->
-<div class="page active" id="page-registry">
   <div class="page-header">
     <div class="logo-sym"></div>
     <h1>Character Registry</h1>
     <p class="subtitle">EVE FRONTIER <span>///</span> BLOCKCHAIN EXPLORER <span>///</span> <span>SUI TESTNET</span></p>
   </div>
 
+  <!-- Carte personnage sélectionné -->
   <div class="sel-card" id="selCard">
     <div class="sel-name" id="selName">—</div>
     <div class="sel-fields">
@@ -225,480 +39,112 @@ footer span{color:var(--accent);}
       </div>
     </div>
     <div style="margin-top:14px">
-      <button class="btn open-dash-btn" onclick="openDashboard()">⬡ Ouvrir le Dashboard →</button>
+      <a href="dashboard.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center">
+        ⬡ Ouvrir le Dashboard →
+      </a>
     </div>
   </div>
 
+  <!-- Recherche -->
   <div class="panel cut">
     <div class="panel-label">SEARCH</div>
     <div class="search-row">
       <div class="input-wrap">
-        <input type="text" id="regSearch" placeholder="Filtrer par nom ou ID..." autocomplete="off" spellcheck="false"/>
+        <input type="text" id="regSearch" placeholder="Filtrer par nom ou ID..."
+               autocomplete="off" spellcheck="false"/>
       </div>
     </div>
-    <p class="hint">// tous les personnages sont chargés depuis la blockchain Sui — filtrage local</p>
+    <p class="hint">// données chargées depuis database.json — mis à jour quotidiennement</p>
   </div>
 
+  <!-- Status -->
   <div class="status-bar">
     <div class="dot" id="regDot"></div>
     <span id="regStatus">Chargement...</span>
     <span id="regBadge"></span>
   </div>
 
+  <!-- Résultats -->
   <div id="regResults">
-    <div class="empty"><div class="icon">◈</div><div><span class="spin"></span>Connexion à la blockchain...</div></div>
+    <div class="empty">
+      <div class="icon">◈</div>
+      <div><span class="spin"></span>Connexion à la blockchain...</div>
+    </div>
   </div>
 
   <footer>
-    <div>Source: <span>database.json</span> (mis à jour quotidiennement via GitHub Actions)</div>
+    <div>Source: <span>database.json</span> — mis à jour quotidiennement via GitHub Actions</div>
     <div>Blockchain: <span>Sui Testnet</span> | Package: <span>EVE World v0.0.18</span></div>
   </footer>
+
 </div>
 
-<!-- ══ PAGE 2 : DASHBOARD ════════════════════════════════════════════ -->
-<div class="page" id="page-dashboard">
-  <div class="dash-header">
-    <div class="dash-title" id="dashTitle">Dashboard</div>
-    <div style="display:flex;gap:8px">
-      <button class="back-btn" id="dashRefreshBtn" onclick="refreshDashboard()" style="color:var(--accent);border-color:var(--accent)">⟳ Actualiser</button>
-      <button class="back-btn" onclick="goPage('registry')">← Retour</button>
-    </div>
-  </div>
-
-  <div id="dashLog" class="log-panel" style="display:none"></div>
-
-  <div class="status-bar">
-    <div class="dot" id="dashDot"></div>
-    <span id="dashStatus">En attente...</span>
-    <span id="dashBadge"></span>
-  </div>
-
-  <div id="dashContent">
-    <div class="empty"><div class="icon">⬡</div><div>Sélectionne un personnage dans le Registry</div></div>
-  </div>
-</div>
-
-<!-- ══ PAGE 3 : CONSTRUCTION ════════════════════════════════════════ -->
-<div class="page" id="page-craft">
-  <div class="page-header">
-    <div class="logo-sym"></div>
-    <h1>Construction</h1>
-    <p class="subtitle">CRAFT CALCULATOR <span>///</span> MINING PLANNER</p>
-  </div>
-
-  <div class="panel cut">
-    <div class="panel-label">OBJECTIF</div>
-    <div class="craft-form">
-      <div class="form-group">
-        <label>Item final à crafter</label>
-        <select id="craftItem">
-          <option value="building_foam">Building Foam</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Quantité voulue</label>
-        <div class="input-wrap">
-          <input type="number" id="craftQty" value="10" min="1" max="9999" style="padding-left:12px">
-        </div>
-      </div>
-      <button class="btn" onclick="calcCraft()">Calculer</button>
-    </div>
-    <div class="soute-row">
-      <label>Capacité de soute (unités) :</label>
-      <input type="number" id="crafSoute" value="990" min="1" class="soute-input" style="padding-left:12px">
-    </div>
-    <p class="hint" style="margin-top:8px">// les stocks SSU sont pris en compte si vous êtes connecté</p>
-  </div>
-
-  <div class="craft-result" id="craftResult">
-
-    <!-- Tier 3 : Item final -->
-    <div class="tier-block">
-      <div class="tier-title">TIER 3 — <span>ITEM FINAL</span></div>
-      <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Ressource</span><span style="text-align:right">Requis</span><span style="text-align:right">En stock</span>
-        </div>
-        <div id="craftT3"></div>
-      </div>
-    </div>
-
-    <!-- Tier 2 : Intermédiaires -->
-    <div class="tier-block">
-      <div class="tier-title">TIER 2 — <span>MATIÈRES INTERMÉDIAIRES</span></div>
-      <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Ressource</span><span style="text-align:right">Requis</span><span style="text-align:right">En stock</span>
-        </div>
-        <div id="craftT2"></div>
-      </div>
-    </div>
-
-    <!-- Tier 1 : Raffinés -->
-    <div class="tier-block">
-      <div class="tier-title">TIER 1 — <span>MATIÈRES RAFFINÉES À CRAFTER</span></div>
-      <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Ressource</span><span style="text-align:right">Requis</span><span style="text-align:right">En stock</span>
-        </div>
-        <div id="craftT1"></div>
-      </div>
-    </div>
-
-    <!-- Tier 0 : Minerais bruts -->
-    <div class="tier-block">
-      <div class="tier-title">TIER 0 — <span>MINERAIS BRUTS À MINER</span></div>
-      <div class="panel" style="padding:14px">
-        <div class="tbl-head" style="grid-template-columns:1fr 120px 120px">
-          <span>Ressource</span><span style="text-align:right">À miner</span><span style="text-align:right">En stock</span>
-        </div>
-        <div id="craftT0"></div>
-      </div>
-    </div>
-
-    <!-- Voyages de minage -->
-    <div class="tier-block">
-      <div class="tier-title">🛸 PLAN DE MINAGE — <span>ALLER-RETOURS NÉCESSAIRES</span></div>
-      <div class="trip-grid" id="craftTrips"></div>
-    </div>
-
-  </div><!-- /craft-result -->
-</div>
-
-<!-- ══ PAGE 4 : RECETTES ════════════════════════════════════════════ -->
-<div class="page" id="page-recipes">
-  <div class="page-header">
-    <div class="logo-sym"></div>
-    <h1>Recettes</h1>
-    <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
-  </div>
-
-  <div id="recipesContent"></div>
-</div>
-
-<!-- ════════════════════════════════════════════════════════════════ -->
+<script src="nav.js"></script>
 <script>
-// ══ RECETTES DE CRAFT ══════════════════════════════════════════════
-//
-// TIER 3 — Produits finis (craftés depuis des Tier 2)
-// TIER 2 — Intermédiaires (craftés depuis des Tier 1)
-// TIER 1 — Raffinés (craftés depuis des Tier 0 = minerais bruts)
-// TIER 0 — Minerais bruts (minés dans des astéroïdes)
+// ── Init ──────────────────────────────────────────────────────────
+injectNav('registry');
 
-const RECIPES = {
-  building_foam: {
-    name: "Building Foam",
-    tier: 3,
-    batch: 10,       // 10 Building Foam par batch
-    machine: "Printer S",
-    inputs: [        // quantités pour 1 batch de 10
-      { name: "Reinforced Alloys",  qty: 65 },
-      { name: "Carbon Weave",       qty: 65 },
-      { name: "Thermal Composites", qty: 65 },
-    ]
-  },
-};
+let allChars = [];
+let filtered = [];
 
-// TIER 2 — Intermédiaires
-const T2_RECIPES = {
-  "Reinforced Alloys": {
-    batch: 14,
-    machine: "Refinery M",
-    inputs: [
-      { name: "Nickel-Iron Veins",       qty: 1050 },
-      { name: "Feldspar Crystal Shards", qty: 1050 },
-    ]
-  },
-  "Carbon Weave": {
-    batch: 14,
-    machine: "Refinery M",
-    inputs: [
-      { name: "Tholin Aggregates", qty: 3150 },
-    ]
-  },
-  "Thermal Composites": {
-    batch: 14,
-    machine: "Refinery M",
-    inputs: [
-      { name: "Silicon Dust",            qty: 630  },
-      { name: "Tholin Aggregates",       qty: 1260 },
-      { name: "Feldspar Crystal Shards", qty: 210  },
-    ]
-  },
-};
-
-// TIER 1 — Raffinés (craftés depuis des minerais bruts Tier 0)
-const T1_RECIPES = {
-  "Iron-Rich Nodules": {
-    batch: 10,
-    machine: "Refinery S",
-    inputs: [
-      { name: "Platinum-Group Veins", qty: 198 },
-      { name: "Nickel-Iron Veins",    qty: 20  },
-    ]
-  },
-  "Hydrocarbon Residue": {
-    batch: 20,
-    machine: "Refinery S",
-    inputs: [
-      { name: "Tholin Aggregates",       qty: 180 },
-      { name: "Troilite Sulfide Grains", qty: 20  },
-    ]
-  },
-  "Silica Grains": {
-    batch: 20,
-    machine: "Refinery S",
-    inputs: [
-      { name: "Feldspar Crystal Shards", qty: 50  },
-      { name: "Silicon Dust",            qty: 150 },
-    ]
-  },
-};
-
-// TIER 0 — Minerais bruts (minés dans des astéroïdes)
-// Ces items se trouvent directement en minant
-const T0_SOURCES = {
-  "Platinum-Group Veins":    { asteroid: "SLAG",  volume: 10, type: "Metal-Rich Ore",    craftedFrom: "Platinum-Palladium Matrix" },
-  "Nickel-Iron Veins":       { asteroid: "SLAG",  volume: 10, type: "Metal-Rich Ore",    craftedFrom: "Platinum-Palladium Matrix" },
-  "Tholin Aggregates":       { asteroid: "COMET", volume: 10, type: "Carbonaceous Ore",  craftedFrom: "Hydrated Sulfide Matrix" },
-  "Troilite Sulfide Grains": { asteroid: "COMET", volume: 10, type: "Carbonaceous Ore",  craftedFrom: "Hydrated Sulfide Matrix" },
-  "Feldspar Crystal Shards": { asteroid: "CHAR",  volume: 1,  type: "Common Ore",        craftedFrom: "Feldspar Crystals" },
-  "Silicon Dust":            { asteroid: "CHAR",  volume: 1,  type: "Common Ore",        craftedFrom: "Feldspar Crystals" },
-  "Water Ice":               { asteroid: "COMET", volume: 1,  type: "Ice",               craftedFrom: "Hydrated Sulfide Matrix" },
-};
-
-// Recettes des minerais bruts (on les crafe depuis des astéroïdes via Extractor)
-// Ces objets sont craftés puis raffinés pour donner les T0
-const T0_RECIPES = {
-  "Platinum-Palladium Matrix": {
-    batch: 40,   // 40 Matrix minés = 10 Silica Grains + 30 Iron-Rich Nodules
-    asteroid: "SLAG",
-    volume: 100,
-    outputs: [
-      { name: "Silica Grains",      qty: 10 },
-      { name: "Iron-Rich Nodules",  qty: 30 },
-    ]
-  },
-  "Hydrated Sulfide Matrix": {
-    batch: 40,   // 40 Matrix minés = 20 Hydrocarbon Residue + 200 Water Ice
-    asteroid: "COMET",
-    volume: 10,
-    outputs: [
-      { name: "Hydrocarbon Residue", qty: 20  },
-      { name: "Water Ice",           qty: 200 },
-    ]
-  },
-  "Feldspar Crystals": {
-    batch: 40,   // 40 Crystals minés = 10 Hydrocarbon Residue + 30 Silica Grains
-    asteroid: "CHAR",
-    volume: 10,
-    outputs: [
-      { name: "Hydrocarbon Residue", qty: 10 },
-      { name: "Silica Grains",       qty: 30 },
-    ]
-  },
-};
-
-// Utilitaire : arrondi au batch supérieur
-function ceilBatch(needed, batchSize) {
-  if (needed <= 0) return 0;
-  return Math.ceil(needed / batchSize) * batchSize;
-}
-
-// ── CALCULATEUR PRINCIPAL ─────────────────────────────────────────
-// Calcule TOUT ce dont on a besoin pour crafter N unités d'un produit fini
-// En tenant compte des stocks SSU et en arrondissant aux batches
-function computeCraft(recipeKey, wantedQty) {
-  const recipe = RECIPES[recipeKey];
-  if (!recipe) return null;
-
-  // Nombre de batches de produit final
-  const finalBatches = Math.ceil(wantedQty / recipe.batch);
-  const finalQty = finalBatches * recipe.batch;
-
-  const result = {
-    final:   { name: recipe.name, needed: finalQty, batches: finalBatches },
-    t2:      {},   // { nom: { needed, stock, toCraft, batches } }
-    t1:      {},   // intermédiaires raffinés
-    t0_mine: {},   // minerais bruts à miner
-    t0_raw:  {},   // minerais bruts consommés
-  };
-
-  // ── ÉTAPE 1 : calculer les T2 nécessaires ───────────────────────
-  for (const inp of recipe.inputs) {
-    const name    = inp.name;
-    const needed  = inp.qty * finalBatches;
-    const stock   = ssuStock[name] || 0;
-    const toCraft = Math.max(0, needed - stock);
-    const r       = T2_RECIPES[name];
-    const batches = r ? Math.ceil(toCraft / r.batch) : 0;
-    const actualCraft = batches * (r?.batch || 1);
-
-    result.t2[name] = { needed, stock, toCraft, batches, actualCraft, recipe: r };
-  }
-
-  // ── ÉTAPE 2 : calculer les T1 nécessaires ───────────────────────
-  // Pour chaque T2 à crafter, calculer les inputs (qui sont des T1)
-  const t1needs = {}; // { nom: quantité brute nécessaire }
-  for (const [name, t2] of Object.entries(result.t2)) {
-    if (t2.batches === 0) continue;
-    const r = t2.recipe;
-    if (!r) continue;
-    for (const inp of r.inputs) {
-      t1needs[inp.name] = (t1needs[inp.name] || 0) + inp.qty * t2.batches;
-    }
-  }
-
-  for (const [name, needed] of Object.entries(t1needs)) {
-    const stock   = ssuStock[name] || 0;
-    const toCraft = Math.max(0, needed - stock);
-    const r       = T1_RECIPES[name];
-    const batches = r ? Math.ceil(toCraft / r.batch) : 0;
-    const actualCraft = batches * (r?.batch || 1);
-    result.t1[name] = { needed, stock, toCraft, batches, actualCraft, recipe: r };
-  }
-
-  // ── ÉTAPE 3 : calculer les T0 (minerais bruts) ──────────────────
-  // Pour chaque T1 à crafter, calculer les inputs (T0 bruts)
-  const t0needs = {};
-  for (const [name, t1] of Object.entries(result.t1)) {
-    if (t1.batches === 0) continue;
-    const r = t1.recipe;
-    if (!r) continue;
-    for (const inp of r.inputs) {
-      t0needs[inp.name] = (t0needs[inp.name] || 0) + inp.qty * t1.batches;
-    }
-  }
-
-  for (const [name, needed] of Object.entries(t0needs)) {
-    const stock   = ssuStock[name] || 0;
-    const toMine  = Math.max(0, needed - stock);
-    result.t0_raw[name] = { needed, stock, toMine };
-  }
-
-  // ── ÉTAPE 4 : calculer les voyages de minage ────────────────────
-  // Grouper les T0 par astéroïde
-  const byAsteroid = {};
-  for (const [name, data] of Object.entries(result.t0_raw)) {
-    if (data.toMine <= 0) continue;
-    const src = T0_SOURCES[name];
-    if (!src) continue;
-    const ast = src.asteroid;
-    if (!byAsteroid[ast]) byAsteroid[ast] = [];
-    byAsteroid[ast].push({ name, ...data, volume: src.volume });
-  }
-  result.byAsteroid = byAsteroid;
-
-  return result;
-}
-
-// Type IDs blockchain → noms affichables
-const TYPE_ID_MAP = {
-  "77801": "Nickel-Iron Veins",
-  "77803": "Silicon Dust",
-  "77804": "Tholin Aggregates",
-  "77805": "Platinum-Group Veins",
-  "88234": "Troilite Sulfide Grains",
-  "89258": "Hydrocarbon Residue",
-  "89259": "Silica Grains",
-  "89260": "Iron-Rich Nodules",
-  "84182": "Reinforced Alloys",
-  "84210": "Carbon Weave",
-  "88561": "Thermal Composites",
-  "77802": "Feldspar Crystal Shards",
-  "77806": "Water Ice",
-  "88083": "Platinum-Palladium Matrix",
-  "88084": "Hydrated Sulfide Matrix",
-  "88085": "Feldspar Crystals",
-};
-
-// ══ STATE ══════════════════════════════════════════════════════════
-let allChars   = [];
-let filtered   = [];
-let selChar    = null;  // personnage sélectionné
-let ssuStock   = {};    // { "item_name": qty } agrégé depuis tous les SSU
-let dashLoaded = false; // true quand le dashboard est chargé
-
-const SUI_RPC = "https://fullnode.testnet.sui.io:443";
-const EVE_API = "https://world-api-utopia.uat.pub.evefrontier.com/v2/types/";
-const TARGET_TYPE = "0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::access::OwnerCap<0x28b497559d65ab320d9da4613bf2498d5946b2c0ae3597ccfda3072ce127448c::storage_unit::StorageUnit>";
-let nameCache = {};
-
-// ══ NAVIGATION ════════════════════════════════════════════════════
-function goPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  const tabs = { registry: 0, dashboard: 1, craft: 2, recipes: 3 };
-  if (id === 'recipes') renderRecipes();
-  document.querySelectorAll('.nav-tab')[tabs[id]].classList.add('active');
-  // Le dashboard ne se recharge PAS automatiquement — utiliser le bouton Actualiser
-}
-
-function openDashboard() {
-  if (!selChar) return;
-  document.getElementById('dashTitle').textContent = selChar.name.toUpperCase() + ' — STOCKAGE';
-  goPage('dashboard');
-  // Charger seulement si le dashboard est vide (pas encore chargé pour ce perso)
-  if (!dashLoaded) loadDashboard(selChar);
-}
-
-function refreshDashboard() {
-  if (!selChar) return;
-  dashLoaded = false;
-  loadDashboard(selChar);
-}
-
-function clearChar() {
-  selChar = null;
-  ssuStock = {};
-  document.getElementById('navChar').classList.remove('visible');
-  document.getElementById('selCard').classList.remove('visible');
-  document.querySelectorAll('.char-row').forEach(r => r.classList.remove('hl'));
-}
-
-// ══ PAGE 1 : REGISTRY ═════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   loadRegistry();
   document.getElementById('regSearch').addEventListener('input', filterReg);
+
+  // Restaurer la sélection visuelle si un perso est déjà en session
+  if (window.selChar) showSelCard(window.selChar);
 });
 
+// ── Chargement database.json ──────────────────────────────────────
 async function loadRegistry() {
   setStatus('reg', 'loading', 'Chargement...');
   try {
     const r = await fetch('database.json');
     if (!r.ok) throw new Error('database.json introuvable');
-    const chars = await r.json();
-    allChars = Array.isArray(chars) ? chars : [];
+    allChars = await r.json();
     filtered = allChars;
     renderReg(allChars);
     setStatus('reg', 'on', `${allChars.length} personnages`);
-    document.getElementById('regBadge').innerHTML = `<span class="badge">${allChars.length}</span>`;
+    document.getElementById('regBadge').innerHTML =
+      `<span class="badge">${allChars.length}</span>`;
+
+    // Re-highlight si perso déjà sélectionné
+    if (window.selChar) {
+      const idx = filtered.findIndex(c => c.address === window.selChar.address);
+      if (idx >= 0) document.querySelectorAll('.char-row')[idx]?.classList.add('hl');
+    }
   } catch(e) {
     setStatus('reg', 'err', 'Erreur de chargement');
-    document.getElementById('regResults').innerHTML = `<div class="empty"><div class="icon">◈</div><div>${e.message}</div></div>`;
+    document.getElementById('regResults').innerHTML =
+      `<div class="empty"><div class="icon">◈</div><div>${e.message}</div></div>`;
   }
 }
 
+// ── Filtre ────────────────────────────────────────────────────────
 function filterReg() {
   const q = document.getElementById('regSearch').value.trim().toLowerCase();
-  filtered = q ? allChars.filter(c =>
-    (c.name||'').toLowerCase().includes(q) || (c.itemId||'').toLowerCase().includes(q)
-  ) : allChars;
+  filtered = q
+    ? allChars.filter(c =>
+        (c.name||'').toLowerCase().includes(q) ||
+        (c.itemId||'').toLowerCase().includes(q))
+    : allChars;
   renderReg(filtered);
-  document.getElementById('regBadge').innerHTML = `<span class="badge">${filtered.length} / ${allChars.length}</span>`;
+  document.getElementById('regBadge').innerHTML =
+    `<span class="badge">${filtered.length} / ${allChars.length}</span>`;
 }
 
+// ── Rendu liste ───────────────────────────────────────────────────
 function renderReg(chars) {
   if (!chars.length) {
-    document.getElementById('regResults').innerHTML = `<div class="empty"><div class="icon">◈</div><div>Aucun résultat</div></div>`;
+    document.getElementById('regResults').innerHTML =
+      `<div class="empty"><div class="icon">◈</div><div>Aucun résultat</div></div>`;
     return;
   }
-  const rows = chars.map((c,i) => `
+  const rows = chars.map((c, i) => `
     <li class="char-row" style="grid-template-columns:50px 1fr 260px" onclick="selReg(${i})">
       <div class="char-idx">${String(i+1).padStart(4,'0')}</div>
       <div class="char-nm">${esc(c.name||'—')}</div>
-      <div class="char-id-cell">${esc(c.itemId||c.address?.slice(0,22)+'…'||'—')}</div>
+      <div class="char-id-cell">${esc(c.itemId || c.address?.slice(0,22)+'…' || '—')}</div>
     </li>`).join('');
   document.getElementById('regResults').innerHTML = `
     <div class="tbl-head" style="grid-template-columns:50px 1fr 260px">
@@ -707,445 +153,25 @@ function renderReg(chars) {
     <ul class="results-list">${rows}</ul>`;
 }
 
+// ── Sélection d'un personnage ─────────────────────────────────────
 function selReg(i) {
-  const c = filtered[i]; if (!c) return;
-  document.querySelectorAll('.char-row').forEach((r,j) => r.classList.toggle('hl', j===i));
-  selChar = c;
+  const c = filtered[i];
+  if (!c) return;
+  document.querySelectorAll('.char-row').forEach((r, j) => r.classList.toggle('hl', j === i));
+  NAV.saveChar(c);
+  NAV.setDashLoaded(false); // reset dashboard pour forcer rechargement
+  showSelCard(c);
+}
+
+function showSelCard(c) {
   document.getElementById('selName').textContent   = (c.name||'—').toUpperCase();
-  document.getElementById('selId').textContent     = c.itemId||'—';
-  document.getElementById('selWallet').textContent = c.wallet||c.character_address||'—';
-  document.getElementById('selTribe').textContent  = c.tribe||'—';
-  document.getElementById('selTenant').textContent = c.tenant||'—';
+  document.getElementById('selId').textContent     = c.itemId || '—';
+  document.getElementById('selWallet').textContent = c.address || '—';
+  document.getElementById('selTribe').textContent  = c.tribe   || '—';
+  document.getElementById('selTenant').textContent = c.tenant  || '—';
   document.getElementById('selCard').classList.add('visible');
-  document.getElementById('selCard').scrollIntoView({behavior:'smooth',block:'nearest'});
-  document.getElementById('navCharName').textContent = c.name||'—';
-  document.getElementById('navChar').classList.add('visible');
-  ssuStock = {}; // reset stock à chaque changement de perso
-  dashLoaded = false;
+  document.getElementById('selCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
-
-// ══ PAGE 2 : DASHBOARD ════════════════════════════════════════════
-async function loadDashboard(char) {
-  const logEl = document.getElementById('dashLog');
-  logEl.style.display = 'block';
-  logEl.innerHTML = '';
-  const addLog = (msg, col='#7ee787') => {
-    logEl.innerHTML += `> <span style="color:${col}">${msg}</span>\n`;
-    logEl.scrollTop = logEl.scrollHeight;
-  };
-
-  // char.address = wallet Sui du joueur (= character_id dans le PlayerProfile)
-  // C'est directement cette adresse qu'on passe à suix_getOwnedObjects
-  const ownerWallet = char.address;
-
-  addLog(`Wallet owner : ${ownerWallet}`, '#58a6ff');
-
-  if (!ownerWallet) {
-    setStatus('dash', 'err', 'Adresse introuvable');
-    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Adresse wallet introuvable dans database.json</div></div>`;
-    return;
-  }
-
-  setStatus('dash', 'loading', `Scan de ${char.name}...`);
-  document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div><span class="spin"></span>Interrogation de la blockchain...</div></div>`;
-
-  try {
-    addLog(`Scan de : ${char.name}`);
-
-    // Récupérer TOUS les objets du wallet page par page, puis filtrer sur TARGET_TYPE
-    let allObjects = [];
-    let cursor = null;
-    let safetyCount = 0;
-    while (safetyCount < 20) {
-      safetyCount++;
-      // Format exact de suix_getOwnedObjects : (address, query, cursor, limit)
-      // query = { filter?, options }  cursor = string|null  limit = number
-      const page = await callSui("suix_getOwnedObjects", [
-        ownerWallet,
-        { options: { showContent: true, showType: true } },
-        cursor || null,
-        50
-      ]);
-      const pageData = page.result?.data || [];
-      allObjects = allObjects.concat(pageData);
-
-      // Stop si : pas de page suivante, pas de curseur, ou page vide
-      const nextCursor = page.result?.nextCursor;
-      const hasNext    = page.result?.hasNextPage === true;
-      if (!hasNext || !nextCursor || pageData.length === 0) break;
-      // Stop si le curseur ne change pas (boucle infinie)
-      if (nextCursor === cursor) { addLog('  ⚠️ curseur identique, arrêt forcé', '#d29922'); break; }
-      cursor = nextCursor;
-    }
-
-    const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
-    addLog(`${allObjects.length} objets scannés → ${caps.length} clé(s) de stockage trouvée(s).`);
-
-    if (caps.length === 0) {
-      setStatus('dash', 'on', 'Aucun SSU');
-      document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Aucun Smart Storage Unit trouvé</div></div>`;
-      return;
-    }
-
-    const ssuCards = [];
-    ssuStock = {}; // reset
-
-    for (let capIdx = 0; capIdx < caps.length; capIdx++) {
-      const cap = caps[capIdx];
-      addLog(`SSU ${capIdx+1}/${caps.length}...`);
-
-      try {
-        const ssuId = cap.data?.content?.fields?.authorized_object_id;
-        if (!ssuId) { addLog(`⚠️ Cap ${capIdx+1} : pas d'authorized_object_id`, '#d29922'); continue; }
-
-        // 1. Lire l'objet SSU
-        const ssuObj = await callSui("sui_getObject", [ssuId, { showContent: true }]);
-        if (!ssuObj.result?.data) { addLog(`⚠️ SSU ${ssuId.slice(0,12)}... introuvable`, '#d29922'); continue; }
-
-        const fields = ssuObj.result.data.content.fields;
-        const ssuName   = fields.metadata?.fields?.name || `Storage Unit ${capIdx+1}`;
-        const statusVar = fields.status?.fields?.status?.variant || 'UNKNOWN';
-        const typeId    = fields.type_id || '';
-        addLog(`✓ ${ssuName} [${statusVar}]`);
-
-        let items = [];
-        let usedCap = 0;
-        let maxCap = 2000000;
-
-        // Lire les dynamic fields du SSU — chaque SSU a 2 inventaires
-        const dfRes  = await callSui("suix_getDynamicFields", [ssuId]);
-        const dfList = dfRes.result?.data || [];
-
-        for (const df of dfList) {
-          const invObj = await callSui("sui_getObject", [df.objectId, { showContent: true }]);
-          const raw = invObj.result?.data?.content?.fields;
-          if (!raw) continue;
-          const inv = raw.value?.fields || raw;
-          usedCap += parseInt(inv.used_capacity || '0');
-          maxCap   = parseInt(inv.max_capacity  || '2000000');
-          const contents = inv.items?.fields?.contents || [];
-          for (const item of contents) {
-            const d = item.fields?.value?.fields;
-            if (!d) continue;
-            const tname = await getItemName(d.type_id);
-            items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
-            ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
-          }
-        }
-
-        ssuCards.push({ name: ssuName, id: ssuId, items, maxCap, usedCap, status: statusVar, typeId });
-      } catch(capErr) {
-        addLog(`⚠️ SSU ${capIdx+1} erreur : ${capErr.message}`, '#d29922');
-      }
-    }
-
-    // Rendu des cartes SSU
-    const grid = document.createElement('div');
-    grid.className = 'ssu-grid';
-
-    for (const ssu of ssuCards) {
-      const pct      = ssu.maxCap > 0 ? Math.round(ssu.usedCap / ssu.maxCap * 100) : 0;
-      const isOnline = ssu.status === 'ONLINE';
-      const div      = document.createElement('div');
-      div.className  = 'ssu-card';
-
-      const statusBadge = `<span style="
-        font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:2px;
-        padding:2px 7px;border:1px solid ${isOnline ? 'var(--green)' : 'var(--text3)'};
-        color:${isOnline ? 'var(--green)' : 'var(--text3)'};
-        margin-left:8px;vertical-align:middle;
-      ">${ssu.status||'?'}</span>`;
-
-      let itemsHtml = ssu.items.length === 0
-        ? `<div class="ssu-empty">${isOnline ? 'Vide' : 'Hors ligne — inventaire non accessible'}</div>`
-        : ssu.items.sort((a,b) => b.qty - a.qty).map(it => `
-            <div class="item-row">
-              <span class="item-name">${esc(it.name)}</span>
-              <span class="item-qty">${it.qty.toLocaleString()}</span>
-            </div>`).join('');
-
-      div.style.opacity = isOnline ? '1' : '0.6';
-      div.innerHTML = `
-        <div class="ssu-card-header">
-          <div class="ssu-card-name">${esc(ssuName2short(ssu.name))}${statusBadge}</div>
-          <div class="ssu-card-id">${ssu.id.slice(0,20)}...</div>
-        </div>
-        <div class="ssu-cap-bar"><div class="ssu-cap-fill" style="width:${pct}%;background:${isOnline ? '' : 'var(--text3)'}"></div></div>
-        <div class="ssu-cap-text">${ssu.usedCap.toLocaleString()} / ${ssu.maxCap.toLocaleString()} unités (${pct}%)</div>
-        ${itemsHtml}`;
-      grid.appendChild(div);
-    }
-
-    setStatus('dash', 'on', `${ssuCards.length} SSU chargés`);
-    document.getElementById('dashBadge').innerHTML = `<span class="badge">${ssuCards.length} SSU</span>`;
-    document.getElementById('dashContent').innerHTML = '';
-    document.getElementById('dashContent').appendChild(grid);
-    dashLoaded = true;
-    addLog(`✨ Synchronisation terminée — ${Object.keys(ssuStock).length} types d'items trouvés.`);
-
-  } catch(e) {
-    setStatus('dash', 'err', 'Erreur blockchain');
-    addLog(`❌ ${e.message}`, '#f85149');
-    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>${e.message}</div></div>`;
-  }
-}
-
-function ssuName2short(n) { return n.length > 28 ? n.slice(0,26)+'…' : n; }
-
-async function callSui(method, params) {
-  const r = await fetch(SUI_RPC, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jsonrpc:"2.0", id:1, method, params }),
-    signal: AbortSignal.timeout(12000)
-  });
-  return r.json();
-}
-
-async function getItemName(typeId) {
-  if (TYPE_ID_MAP[typeId]) return TYPE_ID_MAP[typeId];
-  if (nameCache[typeId])   return nameCache[typeId];
-  try {
-    const res = await fetch(`${EVE_API}${typeId}?format=json`, {signal: AbortSignal.timeout(5000)});
-    const d = await res.json();
-    nameCache[typeId] = d.name || `ID ${typeId}`;
-    return nameCache[typeId];
-  } catch { return `ID ${typeId}`; }
-}
-
-// ══ PAGE 3 : CONSTRUCTION ════════════════════════════════════════
-function calcCraft() {
-  const itemKey = document.getElementById('craftItem').value;
-  const qty     = parseInt(document.getElementById('craftQty').value) || 10;
-  const soute   = parseInt(document.getElementById('crafSoute').value) || 990;
-
-  const r = computeCraft(itemKey, qty);
-  if (!r) return;
-
-  document.getElementById('craftResult').classList.add('visible');
-
-  // ── TIER 3 : produit final ──
-  document.getElementById('craftT3').innerHTML = `
-    <div class="mat-row">
-      <div class="mat-name">${esc(r.final.name)}</div>
-      <div class="mat-qty need">${r.final.needed} <span style="font-size:9px;color:var(--text3)">(${r.final.batches} batch${r.final.batches>1?'es':''})</span></div>
-      <div class="mat-qty ok">—</div>
-    </div>`;
-
-  // ── TIER 2 : composants intermédiaires ──
-  document.getElementById('craftT2').innerHTML = Object.entries(r.t2).map(([name, d]) => {
-    const cls = d.stock >= d.needed ? 'ok' : d.stock > 0 ? 'partial' : 'need';
-    const craftInfo = d.batches > 0
-      ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.actualCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
-      : `<span style="font-size:9px;color:var(--green)"> ✓ stock suffisant</span>`;
-    return `<div class="mat-row">
-      <div class="mat-name">${esc(name)}${craftInfo}</div>
-      <div class="mat-qty need">${d.needed}</div>
-      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
-    </div>`;
-  }).join('');
-
-  // ── TIER 1 : raffinés à crafter ──
-  const t1html = Object.entries(r.t1).map(([name, d]) => {
-    const cls = d.stock >= d.needed ? 'ok' : d.stock > 0 ? 'partial' : 'need';
-    const craftInfo = d.batches > 0
-      ? `<span style="font-size:9px;color:var(--text3)"> → crafter ${d.actualCraft} (${d.batches} batch${d.batches>1?'es':''})</span>`
-      : `<span style="font-size:9px;color:var(--green)"> ✓ stock suffisant</span>`;
-    return `<div class="mat-row">
-      <div class="mat-name">${esc(name)}${craftInfo}</div>
-      <div class="mat-qty need">${d.needed}</div>
-      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('craftT1').innerHTML = t1html ||
-    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
-
-  // ── TIER 0 : minerais bruts ──
-  const t0html = Object.entries(r.t0_raw).map(([name, d]) => {
-    const cls = d.toMine <= 0 ? 'ok' : 'need';
-    return `<div class="mat-row">
-      <div class="mat-name">${esc(name)}</div>
-      <div class="mat-qty need">${d.needed}</div>
-      <div class="mat-qty ${cls}">${selChar ? d.stock.toLocaleString() : '—'}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('craftT0').innerHTML = t0html ||
-    `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
-
-  // ── VOYAGES DE MINAGE ──
-  if (Object.keys(r.byAsteroid).length === 0) {
-    document.getElementById('craftTrips').innerHTML = `
-      <div class="trip-card" style="border-left-color:var(--green)">
-        <div class="trip-asteroid">✓ COMPLET</div>
-        <div class="trip-resource">Tout est en stock !</div>
-        <div class="trip-count">0</div>
-        <div class="trip-label">voyage nécessaire</div>
-      </div>`;
-    return;
-  }
-
-  const tripsHtml = Object.entries(r.byAsteroid).map(([ast, mats]) => {
-    // Calcul : pour chaque mat, combien d'unités par voyage selon la soute
-    const lines = mats.map(m => {
-      const perTrip = Math.floor(soute / m.volume);
-      const trips   = Math.ceil(m.toMine / perTrip);
-      return { ...m, perTrip, trips };
-    });
-    // Le nombre de voyages = le max de tous les mats de cet astéroïde
-    const maxTrips = Math.max(...lines.map(l => l.trips));
-    const detail = lines.map(l =>
-      `${esc(l.name)} : ${l.toMine.toLocaleString()} à miner (${l.perTrip.toLocaleString()}/voyage → ${l.trips} voyage${l.trips>1?'s':''})`
-    ).join('<br>');
-
-    return `<div class="trip-card">
-      <div class="trip-asteroid">${esc(ast)}</div>
-      <div class="trip-resource">${lines.map(l => esc(l.name)).join(', ')}</div>
-      <div class="trip-count">${maxTrips}</div>
-      <div class="trip-label">aller-retour${maxTrips>1?'s':''} de minage</div>
-      <div class="trip-detail">${detail}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('craftTrips').innerHTML = tripsHtml;
-}
-
-function matRow(name, needed, stock) {
-  const cls = stock >= needed ? 'ok' : stock > 0 ? 'partial' : 'need';
-  const stockTxt = selChar ? stock.toLocaleString() : '—';
-  return `<div class="mat-row">
-    <div class="mat-name">${esc(name)}</div>
-    <div class="mat-qty need">${needed.toLocaleString()}</div>
-    <div class="mat-qty ${cls}">${stockTxt}</div>
-  </div>`;
-}
-
-
-// ══ PAGE 4 : RECETTES ═════════════════════════════════════════════
-function renderRecipes() {
-  const container = document.getElementById('recipesContent');
-  if (container.innerHTML !== '') return;
-
-  const recipeBlock = (title, color, rows) => `
-    <div style="margin-bottom:4px">
-      <div class="tier-title" style="margin-bottom:8px">${title}</div>
-      <div class="tbl-head" style="grid-template-columns:1fr 90px 90px">
-        <span>Ressource</span><span style="text-align:right">Qté</span><span style="text-align:right">Batch</span>
-      </div>
-      ${rows}
-    </div>`;
-
-  const matR = (name, qty, batch='') => `
-    <div class="mat-row">
-      <div class="mat-name">${esc(name)}</div>
-      <div class="mat-qty need" style="text-align:right">${qty}</div>
-      <div class="mat-qty" style="color:var(--text3);text-align:right">${batch}</div>
-    </div>`;
-
-  let html = '';
-
-  // ── TIER 3 : Produits finis ──────────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 3 — PRODUITS FINIS</div>`;
-  for (const [key, rec] of Object.entries(RECIPES)) {
-    html += `
-      <div style="margin-bottom:20px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--accent);margin-bottom:8px">
-          ⚙ ${esc(rec.name)} — <span style="color:var(--accent)">${rec.batch} unités</span>
-          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 90px">
-          <span>Composant requis</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.inputs.map(i => `
-          <div class="mat-row">
-            <div class="mat-name">${esc(i.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-          </div>`).join('')}
-      </div>`;
-  }
-  html += `</div>`;
-
-  // ── TIER 2 : Intermédiaires ──────────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 2 — INTERMÉDIAIRES</div>`;
-  for (const [name, rec] of Object.entries(T2_RECIPES)) {
-    html += `
-      <div style="margin-bottom:20px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--blue);margin-bottom:8px">
-          🔧 ${esc(name)} — <span style="color:var(--blue)">${rec.batch} unités / batch</span>
-          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 90px">
-          <span>Input requis</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.inputs.map(i => `
-          <div class="mat-row">
-            <div class="mat-name">${esc(i.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-          </div>`).join('')}
-      </div>`;
-  }
-  html += `</div>`;
-
-  // ── TIER 1 : Raffinés ────────────────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 1 — RAFFINÉS</div>`;
-  for (const [name, rec] of Object.entries(T1_RECIPES)) {
-    html += `
-      <div style="margin-bottom:20px">
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#fff;letter-spacing:2px;
-          padding:8px 14px;background:var(--bg3);border-left:3px solid var(--gold);margin-bottom:8px">
-          ⚗ ${esc(name)} — <span style="color:var(--gold)">${rec.batch} unités / batch</span>
-          <span style="color:var(--text3);font-size:9px;margin-left:12px">via ${esc(rec.machine)}</span>
-        </div>
-        <div class="tbl-head" style="grid-template-columns:1fr 90px">
-          <span>Minerai requis (Tier 0)</span><span style="text-align:right">Quantité</span>
-        </div>
-        ${rec.inputs.map(i => `
-          <div class="mat-row">
-            <div class="mat-name">${esc(i.name)}</div>
-            <div class="mat-qty need" style="text-align:right">${i.qty}</div>
-          </div>`).join('')}
-      </div>`;
-  }
-  html += `</div>`;
-
-  // ── TIER 0 : Minerais bruts ──────────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:20px"><div class="panel-label">TIER 0 — MINERAIS BRUTS (ASTÉROÏDES)</div>`;
-  html += `<div class="tbl-head" style="grid-template-columns:1fr 80px 100px 60px">
-    <span>Minerai brut</span><span>Astéroïde</span><span>Craft (40 unités)</span><span style="text-align:right">Vol./u</span>
-  </div>`;
-  for (const [matrix, rec] of Object.entries(T0_RECIPES)) {
-    html += `
-      <div class="mat-row" style="grid-template-columns:1fr 80px 100px 60px;align-items:start;padding:10px 14px">
-        <div>
-          <div class="mat-name">${esc(matrix)}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">
-            ${rec.outputs.map(o => `→ ${o.qty}x ${esc(o.name)}`).join('<br>')}
-          </div>
-        </div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);padding-top:2px">${esc(rec.asteroid)}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3);padding-top:2px">${rec.batch} unités</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text3);text-align:right;padding-top:2px">${rec.volume}</div>
-      </div>`;
-  }
-  html += `</div>`;
-
-  container.innerHTML = html;
-}
-
-// ══ UTILITAIRES ════════════════════════════════════════════════════
-function setStatus(ns, type, msg) {
-  document.getElementById(ns+'Dot').className = 'dot ' + type;
-  document.getElementById(ns+'Status').textContent = msg;
-}
-function cp(id, label, btn) {
-  const v = document.getElementById(id)?.textContent;
-  if (v && v!=='—') navigator.clipboard.writeText(v).then(() => {
-    btn.textContent='[ copied! ]';
-    setTimeout(() => btn.textContent=label, 1500);
-  });
-}
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
