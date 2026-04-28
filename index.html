@@ -567,16 +567,18 @@ async function loadDashboard(char) {
     // Récupérer TOUS les objets du wallet page par page, puis filtrer sur TARGET_TYPE
     let allObjects = [];
     let cursor = null;
-    let hasNext = true;
-    while (hasNext) {
-      const pageOptions = { options: { showContent: true, showType: true } };
-      if (cursor) pageOptions.cursor = cursor;
-      const page = await callSui("suix_getOwnedObjects", [ownerWallet, pageOptions]);
+    let safetyCount = 0;
+    while (safetyCount < 20) {
+      safetyCount++;
+      // Sui attend : [address, { cursor, limit, options }]
+      const pageParam = { options: { showContent: true, showType: true }, limit: 50 };
+      if (cursor) pageParam.cursor = cursor;
+      const page = await callSui("suix_getOwnedObjects", [ownerWallet, pageParam]);
       const pageData = page.result?.data || [];
       allObjects = allObjects.concat(pageData);
-      hasNext = page.result?.hasNextPage === true;
-      cursor = hasNext ? page.result.nextCursor : null;
-      if (pageData.length === 0) break; // sécurité anti-boucle infinie
+      addLog(`  page ${safetyCount}: ${pageData.length} objets (total: ${allObjects.length})`);
+      if (!page.result?.hasNextPage || !page.result?.nextCursor || pageData.length === 0) break;
+      cursor = page.result.nextCursor;
     }
 
     const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
@@ -609,59 +611,49 @@ async function loadDashboard(char) {
         const typeId    = fields.type_id || '';
         addLog(`✓ ${ssuName} [${statusVar}]`);
 
-        // 2. Lire les inventory_keys directement depuis le SSU
-        //    inventory_keys = liste des Object IDs des inventaires
-        const invKeys = fields.inventory_keys || [];
+        // Log de debug : voir les clés disponibles dans fields
+        addLog(`  fields keys: ${Object.keys(fields).join(', ')}`, '#58a6ff');
 
         let items = [];
         let usedCap = 0;
         let maxCap = 2000000;
 
-        if (invKeys.length > 0) {
-          // Lire chaque inventaire directement par son ID
-          for (const invKey of invKeys) {
-            const invId = typeof invKey === 'string' ? invKey : invKey?.fields?.id || invKey?.id;
-            if (!invId) continue;
+        // Lire les dynamic fields du SSU — c'est là que sont les inventaires
+        const dfRes  = await callSui("suix_getDynamicFields", [ssuId]);
+        const dfList = dfRes.result?.data || [];
+        addLog(`  dynamic fields: ${dfList.length} trouvés`, '#58a6ff');
 
-            const invObj = await callSui("sui_getObject", [invId, { showContent: true }]);
-            const invFields = invObj.result?.data?.content?.fields;
-            if (!invFields) continue;
+        // Log chaque dynamic field pour debug
+        dfList.forEach((df, i) => {
+          addLog(`  df[${i}] name.type=${df.name?.type} name.value=${JSON.stringify(df.name?.value)?.slice(0,30)} objectType=${df.objectType?.slice(0,40)}`, '#888');
+        });
 
-            usedCap += parseInt(invFields.used_capacity || '0');
-            maxCap   = parseInt(invFields.max_capacity  || '2000000');
-            const contents = invFields.items?.fields?.contents || [];
-            for (const item of contents) {
-              const d = item.fields?.value?.fields;
-              if (!d) continue;
-              const tname = await getItemName(d.type_id);
-              items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
-              ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
-            }
-          }
-        } else {
-          // Fallback : dynamic fields (ancien comportement)
-          const dfRes  = await callSui("suix_getDynamicFields", [ssuId]);
-          const dfList = dfRes.result?.data || [];
-          // Cherche les champs de type Inventory
-          const invFields2 = dfList.filter(f =>
-            f.objectType?.includes('inventory::Inventory') ||
-            f.name?.value === cap.data.objectId
-          );
-          for (const df of invFields2) {
-            const invObj = await callSui("sui_getObject", [df.objectId, { showContent: true }]);
-            const inv = invObj.result?.data?.content?.fields?.value?.fields
-                     || invObj.result?.data?.content?.fields;
-            if (!inv) continue;
-            usedCap += parseInt(inv.used_capacity || '0');
-            maxCap   = parseInt(inv.max_capacity  || '2000000');
-            const contents = inv.items?.fields?.contents || [];
-            for (const item of contents) {
-              const d = item.fields?.value?.fields;
-              if (!d) continue;
-              const tname = await getItemName(d.type_id);
-              items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
-              ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
-            }
+        // Stratégie : prendre TOUS les dynamic fields dont le type contient "Inventory"
+        const invDfs = dfList.filter(f => f.objectType?.includes('inventory::Inventory'));
+        // Si aucun par type, fallback sur le champ dont le name.value = cap.data.objectId
+        const dfsToRead = invDfs.length > 0
+          ? invDfs
+          : dfList.filter(f => f.name?.value === cap.data.objectId);
+
+        addLog(`  → ${dfsToRead.length} inventaire(s) à lire`, '#7ee787');
+
+        for (const df of dfsToRead) {
+          const invObj = await callSui("sui_getObject", [df.objectId, { showContent: true }]);
+          const raw = invObj.result?.data?.content?.fields;
+          if (!raw) continue;
+
+          // L'inventaire peut être dans raw directement ou dans raw.value.fields
+          const inv = raw.value?.fields || raw;
+          usedCap += parseInt(inv.used_capacity || '0');
+          maxCap   = parseInt(inv.max_capacity  || '2000000');
+          const contents = inv.items?.fields?.contents || [];
+          addLog(`  inventaire: ${contents.length} items, used=${inv.used_capacity}`, '#58a6ff');
+          for (const item of contents) {
+            const d = item.fields?.value?.fields;
+            if (!d) continue;
+            const tname = await getItemName(d.type_id);
+            items.push({ name: tname, qty: parseInt(d.quantity), type_id: d.type_id });
+            ssuStock[tname] = (ssuStock[tname]||0) + parseInt(d.quantity);
           }
         }
 
