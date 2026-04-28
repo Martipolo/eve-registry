@@ -230,6 +230,9 @@ function updateSSUSelection() {
   }
   NAV.saveStock(newStock);
 
+  // Sauvegarder la sélection pour que Construction puisse la retrouver
+  sessionStorage.setItem('eve_ssu_selection', JSON.stringify([...selectedSSU]));
+
   // Mettre à jour le compteur dans l'encadré
   const sel = document.getElementById('selectedCount');
   const tot = document.getElementById('totalCount');
