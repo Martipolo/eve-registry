@@ -1,17 +1,31 @@
-// ══ RECIPES.JS — Recettes de craft EVE Frontier ══════════════════════
-// Flux complet :
-// ASTÉROÏDE → miner T0_RAW (Feldspar Crystals, Hydrated Sulfide Matrix, Platinum-Palladium Matrix)
-//   → raffiner → T1_INTER (Silica Grains, Hydrocarbon Residue, Iron-Rich Nodules)
-//     → raffiner → T0_MATS (Feldspar Crystal Shards, Silicon Dust, Tholin Aggregates, Nickel-Iron Veins...)
-//       → crafter → T2 (Reinforced Alloys, Carbon Weave, Thermal Composites)
-//         → crafter → T3 (Building Foam)
+// ══ RECIPES.JS ═══════════════════════════════════════════════════
+//
+// FLUX COMPLET (5 étapes) :
+//
+// ÉTAPE 1 : Miner des MATRICES BRUTES dans les astéroïdes
+//   SLAG  → Platinum-Palladium Matrix (40u) → 10 Silica Grains + 30 Iron-Rich Nodules
+//   COMET → Hydrated Sulfide Matrix   (40u) → 20 Hydrocarbon Residue + 200 Water Ice
+//   CHAR  → Feldspar Crystals         (40u) → 10 Hydrocarbon Residue + 30 Silica Grains
+//
+// ÉTAPE 2 : Raffiner les INTERMÉDIAIRES → donne des MATIÈRES BRUTES
+//   10 Iron-Rich Nodules      → 198 Platinum-Group Veins + 20 Nickel-Iron Veins
+//   20 Hydrocarbon Residue    → 180 Tholin Aggregates + 20 Troilite Sulfide Grains
+//   20 Silica Grains          → 50 Feldspar Crystal Shards + 150 Silicon Dust
+//
+// ÉTAPE 3 : Crafter les COMPOSANTS depuis les MATIÈRES BRUTES
+//   1050 Nickel-Iron Veins + 1050 Feldspar Crystal Shards → 14 Reinforced Alloys
+//   3150 Tholin Aggregates                                → 14 Carbon Weave
+//   630 Silicon Dust + 1260 Tholin Agg + 210 Feldspar CS  → 14 Thermal Composites
+//
+// ÉTAPE 4 : Crafter le PRODUIT FINAL
+//   65 Reinforced Alloys + 65 Carbon Weave + 65 Thermal Composites → 10 Building Foam
 
-// ── TIER 3 — Produits finis ───────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// ÉTAPE 4 — Produit final
+// ─────────────────────────────────────────────────────────────────
 const RECIPES = {
   building_foam: {
-    name:    "Building Foam",
-    batch:   10,
-    machine: "Printer S",
+    name: "Building Foam", batch: 10, machine: "Printer S",
     inputs: [
       { name: "Reinforced Alloys",  qty: 65 },
       { name: "Carbon Weave",       qty: 65 },
@@ -20,9 +34,10 @@ const RECIPES = {
   },
 };
 
-// ── TIER 2 — Composants intermédiaires ───────────────────────────
-// Consomment des matières raffinées (T0_MATS)
-const T2_RECIPES = {
+// ─────────────────────────────────────────────────────────────────
+// ÉTAPE 3 — Composants (craftés depuis les matières brutes)
+// ─────────────────────────────────────────────────────────────────
+const COMPOSANTS = {
   "Reinforced Alloys": {
     batch: 14, machine: "Refinery M",
     inputs: [
@@ -46,10 +61,10 @@ const T2_RECIPES = {
   },
 };
 
-// ── TIER 1 — Matières intermédiaires ─────────────────────────────
-// Raffinées depuis les T0_RAW (astéroïdes), produisent des T0_MATS
-// Ex: 20 Hydrocarbon Residue → 180 Tholin Aggregates + 20 Troilite Sulfide Grains
-const T1_RECIPES = {
+// ─────────────────────────────────────────────────────────────────
+// ÉTAPE 2 — Intermédiaires (raffinés → donnent des matières brutes)
+// ─────────────────────────────────────────────────────────────────
+const INTERMEDIAIRES = {
   "Iron-Rich Nodules": {
     batch: 10, machine: "Refinery S",
     outputs: [
@@ -73,9 +88,11 @@ const T1_RECIPES = {
   },
 };
 
-// ── TIER 0 RAW — Matières premières (minées dans les astéroïdes) ──
-// 40 unités minées → produisent des T1_INTER
-const T0_RAW_RECIPES = {
+// ─────────────────────────────────────────────────────────────────
+// ÉTAPE 1 — Matrices brutes (minées dans les astéroïdes)
+//           → donnent des intermédiaires après raffinage
+// ─────────────────────────────────────────────────────────────────
+const MATRICES = {
   "Platinum-Palladium Matrix": {
     batch: 40, asteroid: "SLAG", volume: 100,
     outputs: [
@@ -99,127 +116,116 @@ const T0_RAW_RECIPES = {
   },
 };
 
-// ── Arrondi au batch supérieur ─────────────────────────────────────
-function ceilBatch(needed, batchSize) {
-  if (needed <= 0) return 0;
-  return Math.ceil(needed / batchSize) * batchSize;
-}
-
-// ══ CALCULATEUR PRINCIPAL ════════════════════════════════════════
+// ─────────────────────────────────────────────────────────────────
+// CALCULATEUR
+// ─────────────────────────────────────────────────────────────────
 function computeCraft(recipeKey, wantedQty) {
   const recipe = RECIPES[recipeKey];
   if (!recipe) return null;
   const stock = window.ssuStock || {};
 
-  // ── ÉTAPE 1 : T3 — combien de batches du produit final ──────────
-  const finalBatches = Math.ceil(wantedQty / recipe.batch);
-  const finalQty     = finalBatches * recipe.batch;
+  // Utilitaire : arrondi au batch supérieur
+  const ceil = (needed, batch) => needed <= 0 ? 0 : Math.ceil(needed / batch) * batch;
 
   const result = {
-    final:      { name: recipe.name, needed: finalQty, batches: finalBatches },
-    t2:         {},   // composants intermédiaires
-    t0_mats:    {},   // matières raffinées nécessaires
-    t1_inter:   {},   // matières intermédiaires à raffiner
-    t0_raw:     {},   // matières premières à miner
-    byAsteroid: {},   // voyages par astéroïde
+    final:         {},  // produit final
+    composants:    {},  // étape 3 : composants à crafter
+    matieres:      {},  // matières brutes nécessaires (inputs des composants)
+    intermediaires:{},  // étape 2 : intermédiaires à raffiner
+    matrices:      {},  // étape 1 : matrices à miner
+    byAsteroid:    {},  // regroupé par astéroïde pour les voyages
   };
 
-  // ── ÉTAPE 2 : T2 — composants à crafter ─────────────────────────
+  // ── ÉTAPE 4 : produit final ─────────────────────────────────────
+  const finalBatches    = Math.ceil(wantedQty / recipe.batch);
+  const finalQty        = finalBatches * recipe.batch;
+  result.final = { name: recipe.name, needed: finalQty, batches: finalBatches };
+
+  // ── ÉTAPE 3 : composants à crafter ─────────────────────────────
   for (const inp of recipe.inputs) {
-    const needed      = inp.qty * finalBatches;
-    const inStock     = stock[inp.name] || 0;
-    const toCraft     = Math.max(0, needed - inStock);
-    const r           = T2_RECIPES[inp.name];
-    const batches     = r ? Math.ceil(toCraft / r.batch) : 0;
-    const actualCraft = batches * (r?.batch || 1);
-    result.t2[inp.name] = { needed, inStock, toCraft, batches, actualCraft, recipe: r };
+    const needed   = inp.qty * finalBatches;
+    const inStock  = stock[inp.name] || 0;
+    const manque   = Math.max(0, needed - inStock);
+    const rec      = COMPOSANTS[inp.name];
+    const batches  = rec ? Math.ceil(manque / rec.batch) : 0;
+    const toCraft  = batches * (rec?.batch || 1);
+    result.composants[inp.name] = { needed, inStock, manque, batches, toCraft, rec };
   }
 
-  // ── ÉTAPE 3 : T0_MATS — matières raffinées nécessaires ──────────
-  // Chaque T2 à crafter consomme des T0_MATS
-  const t0mats_needed = {};
-  for (const [, t2] of Object.entries(result.t2)) {
-    if (t2.batches === 0 || !t2.recipe) continue;
-    for (const inp of t2.recipe.inputs) {
-      t0mats_needed[inp.name] = (t0mats_needed[inp.name] || 0) + inp.qty * t2.batches;
+  // ── Matières brutes nécessaires (inputs des composants à crafter)
+  const matNeeds = {}; // { nom: quantité_totale_nécessaire }
+  for (const [, comp] of Object.entries(result.composants)) {
+    if (comp.batches === 0 || !comp.rec) continue;
+    for (const inp of comp.rec.inputs) {
+      matNeeds[inp.name] = (matNeeds[inp.name] || 0) + inp.qty * comp.batches;
     }
   }
-  for (const [name, needed] of Object.entries(t0mats_needed)) {
+  for (const [name, needed] of Object.entries(matNeeds)) {
     const inStock = stock[name] || 0;
-    const toMake  = Math.max(0, needed - inStock);
-    result.t0_mats[name] = { needed, inStock, toMake };
+    const manque  = Math.max(0, needed - inStock);
+    result.matieres[name] = { needed, inStock, manque };
   }
 
-  // ── ÉTAPE 4 : T1_INTER — intermédiaires à raffiner ──────────────
-  // Pour chaque T0_MAT manquant, trouver quel T1 le produit
-  // Un T1 peut produire PLUSIEURS T0_MATS à la fois
-  // → calculer le nombre de batches T1 nécessaire pour chaque T0_MAT produit
-  //   puis prendre le MAX pour ce T1
+  // ── ÉTAPE 2 : intermédiaires à raffiner ────────────────────────
+  // Pour chaque matière brute manquante, trouver quel intermédiaire la produit
+  // Un intermédiaire peut produire plusieurs matières → prendre le max de batches
+  const interBatches = {}; // { nom_inter: batches_necessaires }
 
-  const t1_batches_needed = {}; // { t1name: batchesNeeded }
-
-  for (const [t0name, t0data] of Object.entries(result.t0_mats)) {
-    if (t0data.toMake <= 0) continue;
-    for (const [t1name, t1rec] of Object.entries(T1_RECIPES)) {
-      const out = t1rec.outputs.find(o => o.name === t0name);
+  for (const [matName, matData] of Object.entries(result.matieres)) {
+    if (matData.manque <= 0) continue;
+    for (const [interName, interRec] of Object.entries(INTERMEDIAIRES)) {
+      const out = interRec.outputs.find(o => o.name === matName);
       if (!out) continue;
-      // Combien de batches T1 pour produire assez de ce T0 ?
-      const batchesForThis = Math.ceil(t0data.toMake / out.qty);
-      t1_batches_needed[t1name] = Math.max(
-        t1_batches_needed[t1name] || 0,
-        batchesForThis
-      );
+      // Batches nécessaires pour produire assez de cette matière
+      const b = Math.ceil(matData.manque / out.qty);
+      interBatches[interName] = Math.max(interBatches[interName] || 0, b);
     }
   }
 
-  for (const [t1name, batches] of Object.entries(t1_batches_needed)) {
+  for (const [interName, batches] of Object.entries(interBatches)) {
     if (batches === 0) continue;
-    const t1rec       = T1_RECIPES[t1name];
-    const actualCraft = batches * t1rec.batch;
-    const inStock     = stock[t1name] || 0;
+    const rec      = INTERMEDIAIRES[interName];
+    const toUse    = batches * rec.batch; // quantité d'intermédiaire à raffiner
+    const inStock  = stock[interName] || 0;
+    const manque   = Math.max(0, toUse - inStock);
     // Ce que ce raffinage va produire
-    const produces    = t1rec.outputs.map(o => ({
-      name: o.name,
-      qty:  o.qty * batches,
-    }));
-    result.t1_inter[t1name] = { batches, actualCraft, inStock, produces, recipe: t1rec };
+    const produces = rec.outputs.map(o => ({ name: o.name, qty: o.qty * batches }));
+    result.intermediaires[interName] = { toUse, inStock, manque, batches, produces, rec };
   }
 
-  // ── ÉTAPE 5 : T0_RAW — matières premières à miner ───────────────
-  // Pour chaque T1_INTER à raffiner, il faut des T0_RAW
-  // Trouver quel T0_RAW produit ce T1_INTER (via ses outputs)
-  for (const [t1name, t1data] of Object.entries(result.t1_inter)) {
-    // Chercher le T0_RAW dont un des outputs est ce T1
-    for (const [rawName, rawRec] of Object.entries(T0_RAW_RECIPES)) {
-      const out = rawRec.outputs.find(o => o.name === t1name);
+  // ── ÉTAPE 1 : matrices à miner ─────────────────────────────────
+  // Pour chaque intermédiaire manquant, trouver la matrice qui le produit
+  const matrixBatches = {}; // { nom_matrice: batches_necessaires }
+
+  for (const [interName, interData] of Object.entries(result.intermediaires)) {
+    if (interData.manque <= 0) continue;
+    for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
+      const out = matrixRec.outputs.find(o => o.name === interName);
       if (!out) continue;
-      // Combien de batches T0_RAW pour produire assez de T1 ?
-      const batchesNeeded = Math.ceil(t1data.actualCraft / out.qty);
-      const toMine        = batchesNeeded * rawRec.batch;
-      const inStock       = stock[rawName] || 0;
-      const toMineNet     = Math.max(0, toMine - inStock);
-      // Prendre le max si plusieurs T1 viennent du même T0_RAW
-      if (!result.t0_raw[rawName] || toMineNet > result.t0_raw[rawName].toMineNet) {
-        result.t0_raw[rawName] = {
-          needed: toMine, inStock, toMineNet,
-          batches: Math.ceil(toMineNet / rawRec.batch),
-          asteroid: rawRec.asteroid,
-          volume: rawRec.volume,
-        };
-      }
+      const b = Math.ceil(interData.manque / out.qty);
+      matrixBatches[matrixName] = Math.max(matrixBatches[matrixName] || 0, b);
     }
   }
 
-  // ── ÉTAPE 6 : Voyages de minage par astéroïde ───────────────────
-  for (const [rawName, rawData] of Object.entries(result.t0_raw)) {
-    if (rawData.toMineNet <= 0) continue;
-    const ast = rawData.asteroid;
+  for (const [matrixName, batches] of Object.entries(matrixBatches)) {
+    if (batches === 0) continue;
+    const rec     = MATRICES[matrixName];
+    const toMine  = batches * rec.batch;
+    const inStock = stock[matrixName] || 0;
+    const manque  = Math.max(0, toMine - inStock);
+    result.matrices[matrixName] = {
+      toMine, inStock, manque, batches,
+      asteroid: rec.asteroid, volume: rec.volume
+    };
+  }
+
+  // ── Voyages par astéroïde ───────────────────────────────────────
+  for (const [matrixName, data] of Object.entries(result.matrices)) {
+    if (data.manque <= 0) continue;
+    const ast = data.asteroid;
     if (!result.byAsteroid[ast]) result.byAsteroid[ast] = [];
-    const perTrip  = Math.floor(990 / rawData.volume); // sera surchargé par la soute
     result.byAsteroid[ast].push({
-      name: rawName,
-      toMine: rawData.toMineNet,
-      volume: rawData.volume,
+      name: matrixName, toMine: data.manque, volume: data.volume
     });
   }
 
