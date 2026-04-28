@@ -166,15 +166,26 @@ function calcCraft() {
     || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Tout en stock</div></div>`;
 
   // ── Étape 2 : Intermédiaires ─────────────────────────────────
+  // Collecter toutes les matières réellement utilisées dans les recettes
+  const usedMats = new Set();
+  for (const comp of Object.values(COMPOSANTS)) {
+    for (const inp of comp.inputs) usedMats.add(inp.name);
+  }
+
   document.getElementById('craftInter').innerHTML =
     Object.entries(r.intermediaires).map(([name, d]) => {
-      const prod = d.produces.map(p => `${p.qty.toLocaleString()}× ${esc(p.name)}`).join(' + ');
+      // Filtrer uniquement les outputs utiles (dans les recettes), et seulement les manquants
+      const usefulProd = d.produces.filter(p => usedMats.has(p.name) && (r.matieres[p.name]?.manque || 0) > 0);
+      const prod = usefulProd.map(p =>
+        `<span style="color:var(--green);font-weight:bold">${p.qty.toLocaleString()}</span> ${esc(p.name)}`
+      ).join(' + ');
       return `
-        <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
+        <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
           <div class="mat-name">${esc(name)}</div>
-          <div class="mat-qty need">
-            ${d.toUse.toLocaleString()}
-            <span style="font-size:9px;color:var(--green);display:block">→ ${prod}</span>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
+            <span style="color:var(--gold2)">Raffiner ${d.toUse.toLocaleString()}u</span>
+            <span style="color:var(--text3)"> pour obtenir</span><br>
+            ${prod}
           </div>
           <div class="mat-qty ${d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
         </div>`;
