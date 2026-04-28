@@ -538,11 +538,8 @@ function selReg(i) {
 
 // ══ PAGE 2 : DASHBOARD ════════════════════════════════════════════
 async function loadDashboard(char) {
-  const wallet = char.wallet || char.character_address;
-  if (!wallet || wallet === '—') {
-    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Adresse wallet introuvable pour ce personnage</div></div>`;
-    return;
-  }
+  // Cherche le wallet dans tous les champs possibles
+  const wallet = char.wallet || char.character_address || char.address || char.walletAddress;
 
   const logEl = document.getElementById('dashLog');
   logEl.style.display = 'block';
@@ -552,16 +549,36 @@ async function loadDashboard(char) {
     logEl.scrollTop = logEl.scrollHeight;
   };
 
+  addLog(`Champs dispo : ${Object.keys(char).join(', ')}`, '#58a6ff');
+  addLog(`Wallet : ${wallet || 'INTROUVABLE'}`, wallet ? '#7ee787' : '#f85149');
+
+  if (!wallet) {
+    setStatus('dash', 'err', 'Wallet introuvable');
+    document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div>Wallet introuvable dans database.json<br><small style="opacity:.5">${Object.keys(char).join(', ')}</small></div></div>`;
+    return;
+  }
+
   setStatus('dash', 'loading', `Scan de ${char.name}...`);
   document.getElementById('dashContent').innerHTML = `<div class="empty"><div class="icon">⬡</div><div><span class="spin"></span>Interrogation de la blockchain...</div></div>`;
 
   try {
     addLog(`Scan de : ${char.name} (${wallet.slice(0,14)}...)`);
 
-    // 1. Récupérer les OwnerCap<StorageUnit>
-    const owned = await callSui("suix_getOwnedObjects", [wallet, { filter: { StructType: TARGET_TYPE }, options: { showContent: true, showType: true } }]);
-    const caps = (owned.result?.data || []);
-    addLog(`${caps.length} clé(s) de stockage trouvée(s).`);
+    // 1. Récupérer TOUS les objets du wallet, puis filtrer manuellement
+    // (le filtre StructType de Sui ne fonctionne pas bien avec les types génériques)
+    let allObjects = [];
+    let cursor = null;
+    do {
+      const params = [wallet, { options: { showContent: true, showType: true } }];
+      if (cursor) params[1].cursor = cursor;
+      const page = await callSui("suix_getOwnedObjects", params);
+      const data = page.result?.data || [];
+      allObjects = allObjects.concat(data);
+      cursor = page.result?.nextCursor && page.result?.hasNextPage ? page.result.nextCursor : null;
+    } while (cursor);
+
+    const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
+    addLog(`${allObjects.length} objets scannés → ${caps.length} clé(s) de stockage trouvée(s).`);
 
     if (caps.length === 0) {
       setStatus('dash', 'on', 'Aucun SSU');
