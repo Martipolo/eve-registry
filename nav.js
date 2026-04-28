@@ -82,9 +82,9 @@ window.ssuStock = {};
 function injectNav(activePage) {
   const pages = [
     { id: 'registry',     label: '◈ Registry',      href: 'index.html'         },
-    { id: 'dashboard',    label: '⬡ Dashboard',      href: 'dashboard.html'     },
-    { id: 'construction', label: '⚙ Construction',   href: 'construction.html'  },
-    { id: 'recipes',      label: '📋 Recettes',       href: 'recipes.html'       },
+    { id: 'dashboard',    label: '⬡ Dashboard',   href: 'dashboard.html'    },
+    { id: 'construction', label: '⚙ Construction', href: 'construction.html' },
+    { id: 'recipes',      label: '◧ Recipes',      href: 'recipes.html'      },
   ];
 
   const tabs = pages.map(p => `
@@ -92,14 +92,29 @@ function injectNav(activePage) {
       ${p.label}
     </a>`).join('');
 
+  const logoSVG = `<svg class="nav-logo-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="14,2 24,7.5 24,20.5 14,26 4,20.5 4,7.5" stroke="#f05a22" stroke-width="1.2" fill="none"/>
+    <polygon points="14,7 19.5,10.25 19.5,17.75 14,21 8.5,17.75 8.5,10.25" stroke="#b33b12" stroke-width="0.8" fill="#f05a2208"/>
+    <circle cx="14" cy="14" r="2.2" fill="#f05a22"/>
+    <line x1="14" y1="2" x2="14" y2="7" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+    <line x1="14" y1="21" x2="14" y2="26" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+    <line x1="4" y1="7.5" x2="8.5" y2="10.25" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+    <line x1="24" y1="7.5" x2="19.5" y2="10.25" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+    <line x1="4" y1="20.5" x2="8.5" y2="17.75" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+    <line x1="24" y1="20.5" x2="19.5" y2="17.75" stroke="#f05a22" stroke-width="0.8" opacity="0.4"/>
+  </svg>`;
+
   document.body.insertAdjacentHTML('afterbegin', `
     <nav>
-      <div class="nav-logo">EVE<span>//</span>FRONTIER</div>
+      <a href="index.html" class="nav-logo">
+        ${logoSVG}
+        <div class="nav-logo-text">EF MINING<span>PLANNER</span></div>
+      </a>
       <div class="nav-tabs">${tabs}</div>
       <div class="nav-char" id="navChar">
         <div class="nav-char-dot"></div>
         <span class="nav-char-name" id="navCharName">—</span>
-        <span class="nav-char-x" onclick="NAV.clearChar();location.reload();" title="Déconnexion">✕</span>
+        <span class="nav-char-x" onclick="NAV.clearChar();location.reload();" title="Disconnect">✕</span>
       </div>
     </nav>`);
 
