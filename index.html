@@ -570,15 +570,24 @@ async function loadDashboard(char) {
     let safetyCount = 0;
     while (safetyCount < 20) {
       safetyCount++;
-      // Sui attend : [address, { cursor, limit, options }]
-      const pageParam = { options: { showContent: true, showType: true }, limit: 50 };
-      if (cursor) pageParam.cursor = cursor;
-      const page = await callSui("suix_getOwnedObjects", [ownerWallet, pageParam]);
+      // Format exact de suix_getOwnedObjects : (address, query, cursor, limit)
+      // query = { filter?, options }  cursor = string|null  limit = number
+      const page = await callSui("suix_getOwnedObjects", [
+        ownerWallet,
+        { options: { showContent: true, showType: true } },
+        cursor || null,
+        50
+      ]);
       const pageData = page.result?.data || [];
       allObjects = allObjects.concat(pageData);
       addLog(`  page ${safetyCount}: ${pageData.length} objets (total: ${allObjects.length})`);
-      if (!page.result?.hasNextPage || !page.result?.nextCursor || pageData.length === 0) break;
-      cursor = page.result.nextCursor;
+      // Stop si : pas de page suivante, pas de curseur, ou page vide
+      const nextCursor = page.result?.nextCursor;
+      const hasNext    = page.result?.hasNextPage === true;
+      if (!hasNext || !nextCursor || pageData.length === 0) break;
+      // Stop si le curseur ne change pas (boucle infinie)
+      if (nextCursor === cursor) { addLog('  ⚠️ curseur identique, arrêt forcé', '#d29922'); break; }
+      cursor = nextCursor;
     }
 
     const caps = allObjects.filter(o => o.data?.type === TARGET_TYPE);
