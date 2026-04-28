@@ -16,7 +16,7 @@
   </div>
 
   <!-- Carte personnage sélectionné -->
-  <div class="sel-card" id="selCard">
+  <div class="sel-card" id="selCard" style="padding-top:22px">
     <div class="sel-name" id="selName">—</div>
     <div class="sel-fields">
       <div class="sel-field">
@@ -25,7 +25,7 @@
         <button class="copy-btn" onclick="cp('selId','[ copy id ]',this)">[ copy id ]</button>
       </div>
       <div class="sel-field">
-        <label>Wallet Address</label>
+        <label>Address</label>
         <div class="val" id="selWallet">—</div>
         <button class="copy-btn" onclick="cp('selWallet','[ copy ]',this)">[ copy ]</button>
       </div>
@@ -104,7 +104,7 @@ async function loadRegistry() {
     allChars = await r.json();
     filtered = allChars;
     renderReg(allChars);
-    setStatus('reg', 'on', `${allChars.length} personnages`);
+    setStatus('reg', 'on', `${allChars.length} characters`);
     document.getElementById('regBadge').innerHTML =
       `<span class="badge">${allChars.length}</span>`;
 
