@@ -35,7 +35,8 @@
   "dashboard.select.body": "Cliquez sur un Storage Unit pour l'inclure ou l'exclure des calculs de stock.",
   "dashboard.select.count": "sélectionné(s) — le stock des SSU désélectionnés sera ignoré.",
   "dashboard.ssu.empty": "Vide",
-  "dashboard.ssu.offline": "Hors ligne",
+  "dashboard.ssu.online": "EN LIGNE",
+  "dashboard.ssu.offline": "HORS LIGNE",
   "dashboard.storage": "STOCKAGE",
 
   "construction.title": "Construction",
