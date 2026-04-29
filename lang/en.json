@@ -111,6 +111,7 @@
   "recipes.batch": "units / batch",
   "recipes.refined": "units refined →",
   "recipes.via": "via",
+  "recipes.col.matrix": "MATRIX",
 
   "footer.blockchain": "Blockchain:",
   "footer.unofficial": "EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games",
