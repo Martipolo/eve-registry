@@ -111,14 +111,24 @@ function injectNav(activePage) {
         <div class="nav-logo-text">EF MINING<span>PLANNER</span></div>
       </a>
       <div class="nav-tabs">${tabs}</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <select id="langPicker" onchange="loadLang(this.value)"
+          style="background:var(--bg3);border:1px solid var(--border);
+                 color:var(--text3);font-family:'Share Tech Mono',monospace;
+                 font-size:10px;padding:4px 8px;cursor:pointer;height:28px;outline:none">
+          <option value="en">🇬🇧 EN</option>
+          <option value="fr">🇫🇷 FR</option>
+        </select>
       <div class="nav-char" id="navChar">
         <div class="nav-char-dot"></div>
         <span class="nav-char-name" id="navCharName">—</span>
         <span class="nav-char-x" onclick="NAV.clearChar();location.reload();" title="Disconnect">✕</span>
       </div>
+      </div>
     </nav>`);
 
   NAV.init(activePage);
+  initLang();
 }
 
 // ── Utilitaires communs ───────────────────────────────────────────
