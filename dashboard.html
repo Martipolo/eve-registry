@@ -182,7 +182,22 @@ async function loadDashboard() {
     if (ssuCards.length === 0) {
       setStatus('dash', 'on', 'Aucun SSU');
       document.getElementById('dashContent').innerHTML = `
-        <div class="empty"><div class="icon">⬡</div><div>No Smart Storage Unit found</div></div>`;
+        <div class="empty">
+    <div class="icon">⬡</div>
+    <div>No Smart Storage Unit found</div>
+    <div style="margin-top:20px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto">
+      <div style="background:#0a1628;border:1px solid var(--blue);border-left:3px solid var(--blue);padding:16px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2;color:var(--text3)">
+        <div style="color:var(--blue);letter-spacing:3px;font-size:9px;margin-bottom:8px">⬡ PRO TIP — USE SMART STORAGE UNITS</div>
+        Many players store their resources in <span style="color:var(--text2)">Field Storage</span> — but Field Storage is
+        <span style="color:var(--red)">not recorded on the blockchain</span>, so EF Mining Planner
+        cannot read those stocks.<br><br>
+        By using <span style="color:var(--green)">Smart Storage Units (SSU)</span> instead, you get:<br>
+        <span style="color:var(--green)">✓</span> Full stock visibility in this app<br>
+        <span style="color:var(--green)">✓</span> Accurate craft calculations based on your real inventory<br>
+        <span style="color:var(--green)">✓</span> Better security — SSU resources are safer than Field Storage
+      </div>
+    </div>
+  </div>`;
       return;
     }
 
