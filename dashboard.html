@@ -107,13 +107,12 @@
 // ── Init ──────────────────────────────────────────────────────────
 injectNav('dashboard');
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (!window.selChar) return; // pas de perso sélectionné
+document.addEventListener('langReady', () => {
+  if (!window.selChar) return;
 
   document.getElementById('dashTitle').textContent =
     window.selChar.name.toUpperCase() + ' — ' + t('dashboard.storage');
 
-  // Charger seulement si pas déjà en cache
   if (NAV.isDashLoaded()) {
     restoreFromCache();
   } else {
