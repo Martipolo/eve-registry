@@ -9,6 +9,7 @@
   "registry.subtitle": "EXPLORATEUR BLOCKCHAIN",
   "registry.search.placeholder": "Filtrer par nom ou ID...",
   "registry.search.hint": "// données mises à jour quotidiennement",
+  "registry.search.label": "RECHERCHE",
   "registry.col.name": "Nom du Personnage",
   "registry.col.id": "ID du Personnage",
   "registry.no_results": "Aucun résultat",
@@ -19,6 +20,7 @@
   "registry.selected.tribe": "ID de Tribu",
   "registry.selected.tenant": "Tenant",
   "registry.open_dashboard": "⬡ Ouvrir le Tableau de bord →",
+  "registry.characters": "PERSONNAGES",
 
   "dashboard.refresh": "⟳ Actualiser",
   "dashboard.back": "← Retour",
