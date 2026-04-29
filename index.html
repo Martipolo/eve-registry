@@ -93,11 +93,11 @@ let allChars = [];
 let filtered = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-  loadRegistry();
   document.getElementById('regSearch').addEventListener('input', filterReg);
-
-  // Restaurer la sélection visuelle si un perso est déjà en session
   if (window.selChar) showSelCard(window.selChar);
+});
+document.addEventListener('langReady', () => {
+  loadRegistry();
 });
 
 // ── Chargement database.json ──────────────────────────────────────
