@@ -173,12 +173,10 @@ async function refreshStock() {
     sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
     NAV.setDashLoaded(true);
 
-    const selLabel = selectedIds
-      ? `${selCount}/${ssuCards.length} SSU selected`
-      : `${ssuCards.length} SSU`;
+
 
     statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✓ ${selLabel} · ${Object.keys(newStock).length} items`;
+    statusEl.textContent = `✓ ${selCount}/${ssuCards.length} SSU ${t('construction.ssu_selected')} · ${Object.keys(newStock).length} ${t('construction.items')}`;
 
     // Relancer le calcul si un craft est déjà affiché
     if (document.getElementById('craftResult').classList.contains('visible')) {
