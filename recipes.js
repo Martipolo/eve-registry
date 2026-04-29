@@ -37,7 +37,7 @@ const RECIPES = {
   // isSelfCraft: true = ce produit EST lui-même le composant final
   // Le calculateur soustrait le stock existant avant de calculer les batches
   reinforced_alloys: {
-    name: "Reinforced Alloys", batch: 14, machine: "Refinery M",
+    name: "Reinforced Alloys", batch: 14, machine: "Printer S",
     isSelfCraft: true,
     inputs: [
       { name: "Nickel-Iron Veins",       qty: 1050 },
@@ -45,14 +45,14 @@ const RECIPES = {
     ]
   },
   carbon_weave: {
-    name: "Carbon Weave", batch: 14, machine: "Refinery M",
+    name: "Carbon Weave", batch: 14, machine: "Printer S",
     isSelfCraft: true,
     inputs: [
       { name: "Tholin Aggregates", qty: 3150 },
     ]
   },
   thermal_composites: {
-    name: "Thermal Composites", batch: 14, machine: "Refinery M",
+    name: "Thermal Composites", batch: 14, machine: "Printer S",
     isSelfCraft: true,
     inputs: [
       { name: "Silicon Dust",            qty:  630 },
@@ -67,20 +67,20 @@ const RECIPES = {
 // ─────────────────────────────────────────────────────────────────
 const COMPOSANTS = {
   "Reinforced Alloys": {
-    batch: 14, machine: "Refinery M",
+    batch: 14, machine: "Printer S",
     inputs: [
       { name: "Nickel-Iron Veins",       qty: 1050 },
       { name: "Feldspar Crystal Shards", qty: 1050 },
     ]
   },
   "Carbon Weave": {
-    batch: 14, machine: "Refinery M",
+    batch: 14, machine: "Printer S",
     inputs: [
       { name: "Tholin Aggregates", qty: 3150 },
     ]
   },
   "Thermal Composites": {
-    batch: 14, machine: "Refinery M",
+    batch: 14, machine: "Printer S",
     inputs: [
       { name: "Silicon Dust",            qty:  630 },
       { name: "Tholin Aggregates",       qty: 1260 },
@@ -94,21 +94,21 @@ const COMPOSANTS = {
 // ─────────────────────────────────────────────────────────────────
 const INTERMEDIAIRES = {
   "Iron-Rich Nodules": {
-    batch: 10, machine: "Refinery S",
+    batch: 10, machine: "Refinery",
     outputs: [
       { name: "Platinum-Group Veins", qty: 198 },
       { name: "Nickel-Iron Veins",    qty:  20 },
     ]
   },
   "Hydrocarbon Residue": {
-    batch: 20, machine: "Refinery S",
+    batch: 20, machine: "Refinery",
     outputs: [
       { name: "Tholin Aggregates",       qty: 180 },
       { name: "Troilite Sulfide Grains", qty:  20 },
     ]
   },
   "Silica Grains": {
-    batch: 20, machine: "Refinery S",
+    batch: 20, machine: "Refinery",
     outputs: [
       { name: "Feldspar Crystal Shards", qty:  50 },
       { name: "Silicon Dust",            qty: 150 },
