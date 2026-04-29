@@ -12,41 +12,10 @@
   <div class="page-header">
     <div class="logo-sym"></div>
     <h1 data-i18n="recipes.title">Recipes</h1>
-    <p class="subtitle"><span data-i18n="recipes.subtitle">CRAFT RECIPES /// EVE FRONTIER</span></p>
+<p class="subtitle"><span data-i18n="recipes.subtitle">CRAFT RECIPES /// EVE FRONTIER</span></p>
   </div>
 
-  <!-- Sélecteur de machine -->
-  <div class="panel cut" style="margin-top:14px;margin-bottom:24px;padding-top:28px">
-    <div class="panel-label" data-i18n="construction.machine.label">Available machine</div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <select id="recipeMachine" onchange="renderRecipes()"
-        style="background:var(--bg3);border:1px solid var(--border);color:var(--text);
-               font-family:'Share Tech Mono',monospace;font-size:12px;
-               padding:8px 12px;cursor:pointer;outline:none;height:38px;flex:1;max-width:280px">
-        <optgroup label="Portable">
-          <option value="Field Printer">Field Printer</option>
-          <option value="Field Refinery">Field Refinery</option>
-        </optgroup>
-        <optgroup label="Standard">
-          <option value="Mini Printer" selected>Mini Printer</option>
-          <option value="Printer">Printer</option>
-          <option value="Refinery">Refinery</option>
-          <option value="Assembler">Assembler</option>
-        </optgroup>
-        <optgroup label="Heavy">
-          <option value="Heavy Printer">Heavy Printer</option>
-          <option value="Heavy Refinery">Heavy Refinery</option>
-          <option value="Mini Berth">Mini Berth</option>
-          <option value="Berth">Berth</option>
-          <option value="Heavy Berth">Heavy Berth</option>
-        </optgroup>
-        <optgroup label="Special">
-          <option value="Nursery">Nursery</option>
-        </optgroup>
-      </select>
-      <span id="recipeCount" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text3)"></span>
-    </div>
-  </div>
+  
 
   <div id="recipesContent"></div>
 </div>
@@ -60,9 +29,7 @@ document.addEventListener('langReady', renderRecipes);
 const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
 
 function renderRecipes() {
-  const machine   = document.getElementById('recipeMachine')?.value || 'Mini Printer';
   const container = document.getElementById('recipesContent');
-  const recipes   = getRecipesForMachine(machine);
   let html = '';
 
   const card = (icon, title, sub, color, bodyHtml) => `
@@ -78,7 +45,7 @@ function renderRecipes() {
 
   const ioTable = (rows, labelIn) => `
     <div class="tbl-head" style="grid-template-columns:1fr 100px">
-      <span>${labelIn}</span><span style="text-align:right">${t('recipes.col.qty')}</span>
+      <span>${labelIn}</span><span style="text-align:right">Qty</span>
     </div>
     ${rows.map(r => `
       <div class="mat-row" style="grid-template-columns:1fr 100px">
@@ -86,31 +53,34 @@ function renderRecipes() {
         <div class="mat-qty" style="text-align:right;color:${r.color||'var(--gold2)'}">${r.qty}</div>
       </div>`).join('')}`;
 
-  const sorted = Object.entries(recipes).sort(([,a],[,b]) => a.name.localeCompare(b.name));
-
-  document.getElementById('recipeCount').textContent = `${sorted.length} recipes`;
-
-  if (sorted.length === 0) {
-    container.innerHTML = `<div class="empty"><div class="icon">◧</div><div>No recipes for this machine</div></div>`;
-    return;
-  }
-
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${esc(machine.toUpperCase())} — RECIPES</div>`;
-  for (const [key, rec] of sorted) {
-    html += card('⚙', rec.name,
-      `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`,
-      'var(--accent)',
+  // ── Étape 4 : Produit final ──────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step4')}</div>`;
+  for (const [, rec] of Object.entries(RECIPES)) {
+    html += card('⚙', rec.name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
       ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.input')));
   }
   html += `</div>`;
 
-  // Matrices
+  // ── Étape 3 : Composants ─────────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step3')}</div>`;
+  for (const [name, rec] of Object.entries(COMPOSANTS)) {
+    html += card('🔧', name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.raw')));
+  }
+  html += `</div>`;
+
+  // ── Étape 2 : Intermédiaires ─────────────────────────────────
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step2')}</div>`;
+  for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
+    html += card('⚗', name, `${rec.batch} ${t('recipes.refined')} ${rec.machine}`, 'var(--blue)',
+      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), t('recipes.col.output')));
+  }
+  html += `</div>`;
+
+  // ── Étape 1 : Matrices brutes ─────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step1')}</div>
     <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
-      <span>${t('recipes.col.matrix')}</span>
-      <span>${t('recipes.col.asteroid')}</span>
-      <span>${t('recipes.col.outputs')}</span>
-      <span style="text-align:right">${t('recipes.col.volume')}</span>
+      <span>${t('recipes.col.matrix')}</span><span>${t('recipes.col.asteroid')}</span><span>${t('recipes.col.outputs')}</span><span style="text-align:right">${t('recipes.col.volume')}</span>
     </div>`;
   for (const [name, rec] of Object.entries(MATRICES)) {
     const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
