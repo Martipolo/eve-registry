@@ -65,7 +65,7 @@
 
   <!-- Header -->
   <div class="dash-header">
-    <div class="dash-title" id="dashTitle">Dashboard</div>
+    <div class="dash-title" id="dashTitle" data-i18n="nav.dashboard">Dashboard</div>
     <div style="display:flex;gap:8px">
      <button class="back-btn" onclick="refreshDashboard()"
               style="color:var(--accent);border-color:var(--accent)"
@@ -95,7 +95,7 @@
 <div id="dashContent">
     <div class="empty">
       <div class="icon">⬡</div>
-      <div data-i18n="dashboard.no_char"></div>
+      <div id="noCharMsg"></div>
     </div>
   </div>
 
@@ -108,6 +108,11 @@
 injectNav('dashboard');
 
 document.addEventListener('langReady', () => {
+  // Message si pas de perso sélectionné
+  const msg = document.getElementById('noCharMsg');
+  if (msg) msg.innerHTML = `${t('dashboard.no_char')} <a href="index.html" style="color:var(--accent)">${t('nav.registry')}</a>`;
+
+  // Si pas de perso, on s'arrête là
   if (!window.selChar) return;
 
   document.getElementById('dashTitle').textContent =
