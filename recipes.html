@@ -56,7 +56,7 @@ function renderRecipes() {
   // ── Étape 4 : Produit final ──────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step4')}</div>`;
   for (const [, rec] of Object.entries(RECIPES)) {
-    html += card('⚙', rec.name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
+    html += card('⚙', rec.name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
       ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.input')));
   }
   html += `</div>`;
@@ -64,7 +64,7 @@ function renderRecipes() {
   // ── Étape 3 : Composants ─────────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step3')}</div>`;
   for (const [name, rec] of Object.entries(COMPOSANTS)) {
-    html += card('🔧', name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
+    html += card('🔧', name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
       ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.raw')));
   }
   html += `</div>`;
@@ -72,7 +72,7 @@ function renderRecipes() {
   // ── Étape 2 : Intermédiaires ─────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step2')}</div>`;
   for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
-    html += card('⚗', name, `${rec.batch} units → via ${rec.machine}`, 'var(--blue)',
+    html += card('⚗', name, `${rec.batch} ${t('recipes.refined')} ${rec.machine}`, 'var(--blue)',
       ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), t('recipes.col.output')));
   }
   html += `</div>`;
@@ -80,7 +80,7 @@ function renderRecipes() {
   // ── Étape 1 : Matrices brutes ─────────────────────────────────
   html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step1')}</div>
     <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
-      <span>Matrix</span><span>${t('recipes.col.asteroid')}</span><span>${t('recipes.col.outputs')}</span><span style="text-align:right">${t('recipes.col.volume')}</span>
+      <span>${t('recipes.col.matrix')}</span><span>${t('recipes.col.asteroid')}</span><span>${t('recipes.col.outputs')}</span><span style="text-align:right">${t('recipes.col.volume')}</span>
     </div>`;
   for (const [name, rec] of Object.entries(MATRICES)) {
     const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
