@@ -91,6 +91,9 @@
   "construction.of_mining": "of mining",
   "construction.to_mine": "to mine",
   "construction.per_trip": "trip",
+  "construction.hint.stocks_of": "stocks of",
+  "construction.hint.taken_into_account": "taken into account",
+  "construction.hint.items_memory": "item types in memory",
 
   "recipes.title": "Recipes",
   "recipes.subtitle": "CRAFT RECIPES /// EVE FRONTIER",
