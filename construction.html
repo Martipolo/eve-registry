@@ -145,9 +145,9 @@ async function refreshStock() {
   const btn      = document.getElementById('refreshStockBtn');
   const statusEl = document.getElementById('refreshStockStatus');
   btn.disabled = true;
-  btn.textContent = '⟳ Scanning...';
+  btn.textContent = t('construction.refreshing');
   statusEl.style.color = 'var(--text3)';
-  statusEl.textContent = 'Querying blockchain...';
+  statusEl.textContent = t('construction.hint.querying');
 
   // Récupérer la sélection SSU depuis sessionStorage (faite dans le dashboard)
   const savedSel  = sessionStorage.getItem('eve_ssu_selection');
@@ -189,7 +189,7 @@ async function refreshStock() {
     statusEl.textContent = `✗ ${e.message.slice(0, 40)}`;
   } finally {
     btn.disabled = false;
-    btn.textContent = '⟳ Refresh Stock';
+    btn.textContent = t('construction.refresh');
   }
 }
 
