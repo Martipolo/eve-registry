@@ -128,7 +128,7 @@ function injectNav(activePage) {
     </nav>`);
 
   NAV.init(activePage);
-  initLang();
+  initLang(activePage);
 }
 
 // ── Utilitaires communs ───────────────────────────────────────────
@@ -207,10 +207,16 @@ function applyTranslations() {
 }
 
 // Initialiser la langue au chargement
-function initLang() {
+function initLang(activePage) {
   const saved = localStorage.getItem('eve_lang') || 'en';
   loadLang(saved).then(() => {
-    // Déclencher un événement custom pour signaler que la langue est prête
+    // Mettre à jour les labels de la nav maintenant que la langue est chargée
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      const id = tab.dataset.page;
+      const icons = { registry:'◈', dashboard:'⬡', construction:'⚙', recipes:'◧' };
+      const keys  = { registry:'nav.registry', dashboard:'nav.dashboard', construction:'nav.construction', recipes:'nav.recipes' };
+      if (id && keys[id]) tab.textContent = `${icons[id]} ${t(keys[id])}`;
+    });
     document.dispatchEvent(new CustomEvent('langReady'));
   });
 }
