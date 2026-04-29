@@ -94,6 +94,7 @@
   "construction.hint.stocks_of": "stocks of",
   "construction.hint.taken_into_account": "taken into account",
   "construction.hint.items_memory": "item types in memory",
+  "construction.hint.querying": "Querying blockchain...",
 
   "recipes.title": "Recipes",
   "recipes.subtitle": "CRAFT RECIPES /// EVE FRONTIER",
