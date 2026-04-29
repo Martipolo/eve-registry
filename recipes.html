@@ -24,7 +24,7 @@
 <script src="recipes.js"></script>
 <script>
 injectNav('recipes');
-window.addEventListener('DOMContentLoaded', renderRecipes);
+document.addEventListener('langReady', renderRecipes);
 
 const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
 
