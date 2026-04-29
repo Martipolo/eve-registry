@@ -91,6 +91,9 @@
   "construction.of_mining": "de minage",
   "construction.to_mine": "à miner",
   "construction.per_trip": "voyage",
+  "construction.hint.stocks_of": "stocks de",
+  "construction.hint.taken_into_account": "pris en compte",
+  "construction.hint.items_memory": "types d'items en mémoire",
 
   "recipes.title": "Recettes",
   "recipes.subtitle": "RECETTES DE CRAFT /// EVE FRONTIER",
