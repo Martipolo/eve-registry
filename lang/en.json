@@ -40,6 +40,7 @@
   "dashboard.ssu.online": "ONLINE",
   "dashboard.ssu.offline": "OFFLINE",
   "dashboard.storage": "STORAGE",
+  "dashboard.no_char": "Select a character in the Registry first",
 
   "construction.title": "Construction",
   "construction.subtitle": "CRAFT CALCULATOR /// MINING PLANNER",
