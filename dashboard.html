@@ -168,7 +168,7 @@ async function loadDashboard() {
   document.getElementById('dashContent').innerHTML = `
     <div class="empty">
       <div class="icon">⬡</div>
-      <div><span class="spin"></span>Querying blockchain...</div>
+      <div><span class="spin"></span>${t('construction.hint.querying')}</div>
     </div>`;
 
   try {
