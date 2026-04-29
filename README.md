@@ -22,12 +22,12 @@ Connect as your character and view your **Smart Storage Units** in real time.
 
 ## 💡 Getting the most out of EF Mining Planner
 
-> **Use Smart Storage Units, not Field Storage!**
-> 
-> Field Storage resources are **not recorded on the Sui blockchain**, 
-> so this app cannot read them. Store your materials in **SSU** to get 
-> accurate stock readings and precise craft calculations.
-> SSU also provide better in-game security for your resources.
+**Use Smart Storage Units, not Field Storage!**
+
+Field Storage resources are **not recorded on the Sui blockchain**, 
+so this app cannot read them. Store your materials in **SSU** to get 
+accurate stock readings and precise craft calculations.
+SSU also provide better in-game security for your resources.
 
 ### ⚙ Construction Planner
 Plan your crafting sessions with full **multi-tier calculation**.
