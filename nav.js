@@ -118,6 +118,8 @@ function injectNav(activePage) {
                  font-size:10px;padding:4px 8px;cursor:pointer;height:28px;outline:none">
           <option value="en">🇬🇧 EN</option>
           <option value="fr">🇫🇷 FR</option>
+          <option value="es">🇪🇸 ES</option>
+          <option value="ru">🇷🇺 RU</option>
         </select>
       <div class="nav-char" id="navChar">
         <div class="nav-char-dot"></div>
@@ -158,7 +160,7 @@ function cp(id, label, btn) {
 }
 
 // ══ I18N — Moteur de traduction ═══════════════════════════════════
-const SUPPORTED_LANGS = ['en', 'fr'];
+const SUPPORTED_LANGS = ['en', 'fr', 'es', 'ru'];
 let i18nData = {};
 
 // Charger une langue et l'appliquer
