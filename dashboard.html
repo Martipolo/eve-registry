@@ -67,11 +67,11 @@
   <div class="dash-header">
     <div class="dash-title" id="dashTitle">Dashboard</div>
     <div style="display:flex;gap:8px">
-      <button class="back-btn" onclick="refreshDashboard()"
-              style="color:var(--accent);border-color:var(--accent)">
-        ⟳ Refresh
+     <button class="back-btn" onclick="refreshDashboard()"
+              style="color:var(--accent);border-color:var(--accent)"
+              data-i18n="dashboard.refresh">⟳ Refresh
       </button>
-      <a href="index.html" class="back-btn">← Back</a>
+      <a href="index.html" class="back-btn" data-i18n="dashboard.back">← Back</a>
     </div>
   </div>
 
@@ -81,16 +81,15 @@
   <!-- Status -->
   <div class="status-bar">
     <div class="dot" id="dashDot"></div>
-    <span id="dashStatus">Waiting...</span>
+    <span id="dashStatus" data-i18n="dashboard.waiting">Waiting...</span>
     <span id="dashBadge"></span>
   </div>
 
   <!-- Contenu SSU -->
   <div id="ssuInfoBox" style="display:none" class="ssu-select-bar">
-  <strong>⬡ SSU Selection for Construction</strong><br>
-  <span>Click on a Storage Unit to include or exclude it from your construction stock calculations.</span><br>
-  Only <span id="selectedCount">0</span> of <span id="totalCount">0</span> SSU selected —
-  stock from deselected SSU will be <span>ignored</span> in the Construction planner.
+  <strong data-i18n="dashboard.select.title">⬡ SSU SELECTION FOR CONSTRUCTION</strong><br>
+  <span data-i18n="dashboard.select.body">Click on a Storage Unit to include or exclude it from your construction stock calculations.</span><br>
+  Only <span id="selectedCount">0</span> of <span id="totalCount">0</span> SSU <span data-i18n="dashboard.select.count">selected — stock from deselected SSU will be ignored in the Construction planner.</span>
 </div>
 
 <div id="dashContent">
@@ -112,7 +111,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (!window.selChar) return; // pas de perso sélectionné
 
   document.getElementById('dashTitle').textContent =
-    window.selChar.name.toUpperCase() + ' — STORAGE';
+    window.selChar.name.toUpperCase() + ' — ' + t('dashboard.storage');
 
   // Charger seulement si pas déjà en cache
   if (NAV.isDashLoaded()) {
@@ -164,7 +163,7 @@ async function loadDashboard() {
     logEl.scrollTop = logEl.scrollHeight;
   };
 
-  setStatus('dash', 'loading', `Scan de ${char.name}...`);
+  setStatus('dash', 'loading', `${t('dashboard.scanning')} ${char.name}...`);
   document.getElementById('dashContent').innerHTML = `
     <div class="empty">
       <div class="icon">⬡</div>
@@ -180,11 +179,11 @@ async function loadDashboard() {
     sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
 
     if (ssuCards.length === 0) {
-      setStatus('dash', 'on', 'Aucun SSU');
+      setStatus('dash', 'on', t('dashboard.no_ssu'));
       document.getElementById('dashContent').innerHTML = `
         <div class="empty">
     <div class="icon">⬡</div>
-    <div>No Smart Storage Unit found</div>
+    <div>${t('dashboard.no_ssu')}</div>
     <div style="margin-top:20px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto">
       <div style="background:#0a1628;border:1px solid var(--blue);border-left:3px solid var(--blue);padding:16px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2;color:var(--text3)">
         <div style="color:var(--blue);letter-spacing:3px;font-size:9px;margin-bottom:8px">⬡ PRO TIP — USE SMART STORAGE UNITS</div>
@@ -275,7 +274,7 @@ function renderSSU(ssuCards) {
     ">${ssu.status || '?'}</span>`;
 
     const itemsHtml = ssu.items.length === 0
-      ? `<div class="ssu-empty">${isOnline ? 'Empty' : 'Offline'}</div>`
+      ? `<div class="ssu-empty">${isOnline ? t('dashboard.ssu.empty') : t('dashboard.ssu.offline')}</div>`
       : ssu.items.sort((a, b) => b.qty - a.qty).map(it => `
           <div class="item-row">
             <span class="item-name">${esc(it.name)}</span>
@@ -318,7 +317,7 @@ function renderSSU(ssuCards) {
 </script>
   <footer>
     <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span></div>
-    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
+    <div style="margin-top:4px;opacity:.5" data-i18n="footer.unofficial">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
     <div style="margin-top:6px;font-size:9px;letter-spacing:2px">
       Built by <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px" title="Find Ekno in the Registry">EKNO</a>
       <span style="opacity:.4"> · EVE Frontier</span>
