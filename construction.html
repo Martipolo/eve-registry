@@ -126,12 +126,11 @@
 <script>
 injectNav('construction');
 
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('langReady', () => {
   if (window.selChar) {
     document.getElementById('stockHint').innerHTML =
       `// stocks of <span style="color:var(--accent)">${esc(window.selChar.name)}</span> taken into account`;
     document.getElementById('refreshStockWrap').style.display = 'flex';
-    // Afficher le nombre d'items déjà en mémoire
     const count = Object.keys(window.ssuStock || {}).length;
     if (count > 0) {
       const statusEl = document.getElementById('refreshStockStatus');
