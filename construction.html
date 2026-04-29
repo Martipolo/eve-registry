@@ -11,12 +11,12 @@
 
   <div class="page-header">
     <div class="logo-sym"></div>
-    <h1>Construction</h1>
-    <p class="subtitle">CRAFT CALCULATOR <span>///</span> MINING PLANNER</p>
+    <h1 data-i18n="construction.title">Construction</h1>
+<p class="subtitle" data-i18n="construction.subtitle">CRAFT CALCULATOR /// MINING PLANNER</p>
   </div>
 
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">TARGET</div>
+    <div class="panel-label" data-i18n="construction.panel.label">TARGET</div>
     <div class="craft-form">
       <div class="form-group">
         <label data-i18n="construction.item.label">Final item to craft</label>
@@ -129,12 +129,12 @@ injectNav('construction');
 document.addEventListener('langReady', () => {
   if (window.selChar) {
     document.getElementById('stockHint').innerHTML =
-      `// stocks of <span style="color:var(--accent)">${esc(window.selChar.name)}</span> taken into account`;
+      `// ${t('construction.hint.stocks_of')} <span style="color:var(--accent)">${esc(window.selChar.name)}</span> ${t('construction.hint.taken_into_account')}`;
     document.getElementById('refreshStockWrap').style.display = 'flex';
     const count = Object.keys(window.ssuStock || {}).length;
     if (count > 0) {
       const statusEl = document.getElementById('refreshStockStatus');
-      statusEl.textContent = `${count} item types in memory`;
+      statusEl.textContent = `${count} ${t('construction.hint.items_memory')}`;
     }
   }
 });
