@@ -11,8 +11,8 @@
 
   <div class="page-header">
     <div class="logo-sym"></div>
-    <h1>Recipes</h1>
-    <p class="subtitle">CRAFT RECIPES <span>///</span> EVE FRONTIER</p>
+    <h1 data-i18n="recipes.title">Recipes</h1>
+<p class="subtitle"><span data-i18n="recipes.subtitle">CRAFT RECIPES /// EVE FRONTIER</span></p>
   </div>
 
   
@@ -24,7 +24,7 @@
 <script src="recipes.js"></script>
 <script>
 injectNav('recipes');
-window.addEventListener('DOMContentLoaded', renderRecipes);
+document.addEventListener('langReady', renderRecipes);
 
 const AST_COLORS = { SLAG:'var(--accent)', COMET:'var(--blue)', CHAR:'var(--gold)' };
 
@@ -54,33 +54,33 @@ function renderRecipes() {
       </div>`).join('')}`;
 
   // ── Étape 4 : Produit final ──────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 4 — FINAL PRODUCT</div>`;
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step4')}</div>`;
   for (const [, rec] of Object.entries(RECIPES)) {
-    html += card('⚙', rec.name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
-      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Required components'));
+    html += card('⚙', rec.name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.input')));
   }
   html += `</div>`;
 
   // ── Étape 3 : Composants ─────────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 3 — COMPONENTS TO CRAFT</div>`;
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step3')}</div>`;
   for (const [name, rec] of Object.entries(COMPOSANTS)) {
-    html += card('🔧', name, `${rec.batch} units / batch — via ${rec.machine}`, 'var(--accent)',
-      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), 'Required raw materials'));
+    html += card('🔧', name, `${rec.batch} ${t('recipes.batch')} — ${t('recipes.via')} ${rec.machine}`, 'var(--accent)',
+      ioTable(rec.inputs.map(i => ({...i, color:'var(--gold2)'})), t('recipes.col.raw')));
   }
   html += `</div>`;
 
   // ── Étape 2 : Intermédiaires ─────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 2 — INTERMEDIATES (REFINING)</div>`;
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step2')}</div>`;
   for (const [name, rec] of Object.entries(INTERMEDIAIRES)) {
-    html += card('⚗', name, `${rec.batch} units → via ${rec.machine}`, 'var(--blue)',
-      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), 'Raw materials produced'));
+    html += card('⚗', name, `${rec.batch} ${t('recipes.refined')} ${rec.machine}`, 'var(--blue)',
+      ioTable(rec.outputs.map(o => ({...o, color:'var(--green)'})), t('recipes.col.output')));
   }
   html += `</div>`;
 
   // ── Étape 1 : Matrices brutes ─────────────────────────────────
-  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">STEP 1 — RAW MATRICES (ASTEROIDS)</div>
+  html += `<div class="panel cut" style="margin-bottom:24px"><div class="panel-label">${t('recipes.step1')}</div>
     <div class="tbl-head" style="grid-template-columns:1fr 80px 220px 60px">
-      <span>Matrice</span><span>Asteroid</span><span>Outputs (40 units mined)</span><span style="text-align:right">Vol./u</span>
+      <span>${t('recipes.col.matrix')}</span><span>${t('recipes.col.asteroid')}</span><span>${t('recipes.col.outputs')}</span><span style="text-align:right">${t('recipes.col.volume')}</span>
     </div>`;
   for (const [name, rec] of Object.entries(MATRICES)) {
     const col = AST_COLORS[rec.asteroid] || 'var(--text3)';
@@ -101,7 +101,7 @@ function renderRecipes() {
 </script>
   <footer>
     <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span></div>
-    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
+    <div style="margin-top:4px;opacity:.5" data-i18n="footer.unofficial">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
     <div style="margin-top:6px;font-size:9px;letter-spacing:2px">
       Built by <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px" title="Find Ekno in the Registry">EKNO</a>
       <span style="opacity:.4"> · EVE Frontier</span>

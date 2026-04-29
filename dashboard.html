@@ -65,13 +65,13 @@
 
   <!-- Header -->
   <div class="dash-header">
-    <div class="dash-title" id="dashTitle">Dashboard</div>
+    <div class="dash-title" id="dashTitle" data-i18n="nav.dashboard">Dashboard</div>
     <div style="display:flex;gap:8px">
-      <button class="back-btn" onclick="refreshDashboard()"
-              style="color:var(--accent);border-color:var(--accent)">
-        ⟳ Refresh
+     <button class="back-btn" onclick="refreshDashboard()"
+              style="color:var(--accent);border-color:var(--accent)"
+              data-i18n="dashboard.refresh">⟳ Refresh
       </button>
-      <a href="index.html" class="back-btn">← Back</a>
+      <a href="index.html" class="back-btn" data-i18n="dashboard.back">← Back</a>
     </div>
   </div>
 
@@ -81,22 +81,21 @@
   <!-- Status -->
   <div class="status-bar">
     <div class="dot" id="dashDot"></div>
-    <span id="dashStatus">Waiting...</span>
+    <span id="dashStatus" data-i18n="dashboard.waiting">Waiting...</span>
     <span id="dashBadge"></span>
   </div>
 
   <!-- Contenu SSU -->
   <div id="ssuInfoBox" style="display:none" class="ssu-select-bar">
-  <strong>⬡ SSU Selection for Construction</strong><br>
-  <span>Click on a Storage Unit to include or exclude it from your construction stock calculations.</span><br>
-  Only <span id="selectedCount">0</span> of <span id="totalCount">0</span> SSU selected —
-  stock from deselected SSU will be <span>ignored</span> in the Construction planner.
+  <strong data-i18n="dashboard.select.title">⬡ SSU SELECTION FOR CONSTRUCTION</strong><br>
+  <span data-i18n="dashboard.select.body">Click on a Storage Unit to include or exclude it from your construction stock calculations.</span><br>
+  Only <span id="selectedCount">0</span> of <span id="totalCount">0</span> SSU <span data-i18n="dashboard.select.count">selected — stock from deselected SSU will be ignored in the Construction planner.</span>
 </div>
 
 <div id="dashContent">
     <div class="empty">
       <div class="icon">⬡</div>
-      <div>Select a character in the <a href="index.html" style="color:var(--accent)">Registry</a></div>
+      <div id="noCharMsg"></div>
     </div>
   </div>
 
@@ -108,13 +107,17 @@
 // ── Init ──────────────────────────────────────────────────────────
 injectNav('dashboard');
 
-window.addEventListener('DOMContentLoaded', () => {
-  if (!window.selChar) return; // pas de perso sélectionné
+document.addEventListener('langReady', () => {
+  // Message si pas de perso sélectionné
+  const msg = document.getElementById('noCharMsg');
+  if (msg) msg.innerHTML = `${t('dashboard.no_char')} <a href="index.html" style="color:var(--accent)">${t('nav.registry')}</a>`;
+
+  // Si pas de perso, on s'arrête là
+  if (!window.selChar) return;
 
   document.getElementById('dashTitle').textContent =
-    window.selChar.name.toUpperCase() + ' — STORAGE';
+    window.selChar.name.toUpperCase() + ' — ' + t('dashboard.storage');
 
-  // Charger seulement si pas déjà en cache
   if (NAV.isDashLoaded()) {
     restoreFromCache();
   } else {
@@ -134,6 +137,8 @@ function restoreFromCache() {
   try {
     const cached = JSON.parse(sessionStorage.getItem('eve_ssu_cards') || '[]');
     if (cached.length > 0) {
+      document.getElementById('dashTitle').textContent =
+        window.selChar.name.toUpperCase() + ' — ' + t('dashboard.storage');
       renderSSU(cached);
       setStatus('dash', 'on', `${cached.length} SSU (cached)`);
       document.getElementById('dashBadge').innerHTML =
@@ -164,11 +169,11 @@ async function loadDashboard() {
     logEl.scrollTop = logEl.scrollHeight;
   };
 
-  setStatus('dash', 'loading', `Scan de ${char.name}...`);
+  setStatus('dash', 'loading', `${t('dashboard.scanning')} ${char.name}...`);
   document.getElementById('dashContent').innerHTML = `
     <div class="empty">
       <div class="icon">⬡</div>
-      <div><span class="spin"></span>Querying blockchain...</div>
+      <div><span class="spin"></span>${t('construction.hint.querying')}</div>
     </div>`;
 
   try {
@@ -180,9 +185,22 @@ async function loadDashboard() {
     sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
 
     if (ssuCards.length === 0) {
-      setStatus('dash', 'on', 'Aucun SSU');
+      setStatus('dash', 'on', t('dashboard.no_ssu'));
       document.getElementById('dashContent').innerHTML = `
-        <div class="empty"><div class="icon">⬡</div><div>No Smart Storage Unit found</div></div>`;
+        <div class="empty">
+    <div class="icon">⬡</div>
+    <div>${t('dashboard.no_ssu')}</div>
+    <div style="margin-top:20px;text-align:left;max-width:520px;margin-left:auto;margin-right:auto">
+      <div style="background:#0a1628;border:1px solid var(--blue);border-left:3px solid var(--blue);padding:16px 20px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:2;color:var(--text3)">
+        <div style="color:var(--blue);letter-spacing:3px;font-size:9px;margin-bottom:8px">${t('dashboard.ssu_tip.title')}</div>
+        ${t('dashboard.ssu_tip.body')}<br><br>
+        ${t('dashboard.ssu_tip.benefits')}<br>
+        <span style="color:var(--green)">✓</span> ${t('dashboard.ssu_tip.b1')}<br>
+        <span style="color:var(--green)">✓</span> ${t('dashboard.ssu_tip.b2')}<br>
+        <span style="color:var(--green)">✓</span> ${t('dashboard.ssu_tip.b3')}
+      </div>
+    </div>
+  </div>`;
       return;
     }
 
@@ -257,10 +275,10 @@ function renderSSU(ssuCards) {
       padding:2px 7px;border:1px solid ${isOnline ? 'var(--green)' : 'var(--text3)'};
       color:${isOnline ? 'var(--green)' : 'var(--text3)'};
       margin-left:8px;vertical-align:middle;
-    ">${ssu.status || '?'}</span>`;
+    ">${ssu.status === 'ONLINE' ? t('dashboard.ssu.online') : ssu.status === 'OFFLINE' ? t('dashboard.ssu.offline') : ssu.status || '?'}</span>`;
 
     const itemsHtml = ssu.items.length === 0
-      ? `<div class="ssu-empty">${isOnline ? 'Empty' : 'Offline'}</div>`
+      ? `<div class="ssu-empty">${isOnline ? t('dashboard.ssu.empty') : t('dashboard.ssu.offline')}</div>`
       : ssu.items.sort((a, b) => b.qty - a.qty).map(it => `
           <div class="item-row">
             <span class="item-name">${esc(it.name)}</span>
@@ -303,7 +321,7 @@ function renderSSU(ssuCards) {
 </script>
   <footer>
     <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span></div>
-    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
+    <div style="margin-top:4px;opacity:.5" data-i18n="footer.unofficial">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
     <div style="margin-top:6px;font-size:9px;letter-spacing:2px">
       Built by <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px" title="Find Ekno in the Registry">EKNO</a>
       <span style="opacity:.4"> · EVE Frontier</span>

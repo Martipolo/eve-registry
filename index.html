@@ -11,46 +11,46 @@
 
   <div class="page-header">
     <div class="logo-sym"></div>
-    <h1>Character Registry</h1>
-    <p class="subtitle">EVE FRONTIER <span>///</span> BLOCKCHAIN EXPLORER <span>///</span> <span>SUI TESTNET</span></p>
+    <h1 data-i18n="registry.title">Character Registry</h1>
+    <p class="subtitle">EVE FRONTIER <span>///</span> <span data-i18n="registry.subtitle">BLOCKCHAIN EXPLORER</span> <span>///</span> <span>SUI TESTNET</span></p>
   </div>
 
   <!-- Carte personnage sélectionné -->
   <div class="sel-card" id="selCard" style="padding-top:22px">
+  <div class="sel-card-label" data-i18n="registry.selected.label">SELECTED CHARACTER</div>
     <div class="sel-name" id="selName">—</div>
     <div class="sel-fields">
       <div class="sel-field">
-        <label>Character ID</label>
+        <label data-i18n="registry.selected.id">Character ID</label>
         <div class="val gold" id="selId">—</div>
         <button class="copy-btn" onclick="cp('selId','[ copy id ]',this)">[ copy id ]</button>
       </div>
       <div class="sel-field">
-        <label>Address</label>
+        <label data-i18n="registry.selected.address">Address</label>
         <div class="val" id="selWallet">—</div>
         <button class="copy-btn" onclick="cp('selWallet','[ copy ]',this)">[ copy ]</button>
       </div>
       <div class="sel-field">
-        <label>Tribe ID</label>
+        <label data-i18n="registry.selected.tribe">Tribe ID</label>
         <div class="val" id="selTribe">—</div>
       </div>
       <div class="sel-field">
-        <label>Tenant</label>
+        <label data-i18n="registry.selected.tenant">Tenant</label>
         <div class="val" id="selTenant">—</div>
       </div>
     </div>
     <div style="margin-top:14px">
-      <a href="dashboard.html" class="btn" style="text-decoration:none;display:inline-flex;align-items:center">
-        ⬡ Open Dashboard →
+      <a href="dashboard.html" class="btn" data-i18n="registry.open_dashboard" style="text-decoration:none;display:inline-flex;align-items:center">⬡ Open Dashboard →
       </a>
     </div>
   </div>
 
   <!-- Recherche -->
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">SEARCH</div>
+    <div class="panel-label" data-i18n="registry.search.label">SEARCH</div>
     <div class="search-row">
       <div class="input-wrap">
-        <input type="text" id="regSearch" placeholder="Filter by name or ID..."
+        <input type="text" id="regSearch" data-i18n-placeholder="registry.search.placeholder" placeholder="Filter by name or ID..."
                autocomplete="off" spellcheck="false"/>
       </div>
     </div>
@@ -74,7 +74,7 @@
 
   <footer>
     <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span> &nbsp;·&nbsp; <span id="lastUpdated"></span></div>
-    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
+    <div style="margin-top:4px;opacity:.5" data-i18n="footer.unofficial">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
     <div style="margin-top:6px;font-size:9px;letter-spacing:2px">
       Built by <a href="?q=Ekno" style="color:var(--accent);text-decoration:none;letter-spacing:2px" title="Find Ekno in the Registry">EKNO</a>
       <span style="opacity:.4"> · EVE Frontier</span>
@@ -94,11 +94,11 @@ let allChars = [];
 let filtered = [];
 
 window.addEventListener('DOMContentLoaded', () => {
-  loadRegistry();
   document.getElementById('regSearch').addEventListener('input', filterReg);
-
-  // Restaurer la sélection visuelle si un perso est déjà en session
   if (window.selChar) showSelCard(window.selChar);
+});
+document.addEventListener('langReady', () => {
+  loadRegistry();
 });
 
 // ── Chargement database.json ──────────────────────────────────────
@@ -110,7 +110,7 @@ async function loadRegistry() {
     allChars = await r.json();
     filtered = allChars;
     renderReg(allChars);
-    setStatus('reg', 'on', `${allChars.length} characters`);
+    setStatus('reg', 'on', `${allChars.length} ${t('registry.characters')}`);
     document.getElementById('regBadge').innerHTML =
       `<span class="badge">${allChars.length}</span>`;
 
@@ -154,9 +154,11 @@ function renderReg(chars) {
     </li>`).join('');
   document.getElementById('regResults').innerHTML = `
     <div class="tbl-head" style="grid-template-columns:50px 1fr 260px">
-      <span>#</span><span>Character Name</span><span>Character ID</span>
+      <span>#</span><span data-i18n="registry.col.name">Character Name</span><span data-i18n="registry.col.id">Character ID</span>
     </div>
     <ul class="results-list">${rows}</ul>`;
+
+  applyTranslations();
 }
 
 // ── Sélection d'un personnage ─────────────────────────────────────

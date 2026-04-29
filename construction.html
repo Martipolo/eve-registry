@@ -11,15 +11,15 @@
 
   <div class="page-header">
     <div class="logo-sym"></div>
-    <h1>Construction</h1>
-    <p class="subtitle">CRAFT CALCULATOR <span>///</span> MINING PLANNER</p>
+    <h1 data-i18n="construction.title">Construction</h1>
+<p class="subtitle" data-i18n="construction.subtitle">CRAFT CALCULATOR /// MINING PLANNER</p>
   </div>
 
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">TARGET</div>
+    <div class="panel-label" data-i18n="construction.panel.label">TARGET</div>
     <div class="craft-form">
       <div class="form-group">
-        <label>Final item to craft</label>
+        <label data-i18n="construction.item.label">Final item to craft</label>
         <select id="craftItem">
           <optgroup label="Final Products">
             <option value="building_foam">Building Foam</option>
@@ -32,20 +32,21 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Desired quantity</label>
+        <label data-i18n="construction.qty.label">Desired quantity</label>
         <input type="number" id="craftQty" value="10" min="1" max="9999" style="padding-left:12px">
       </div>
-      <button class="btn" onclick="calcCraft()">Calculate</button>
+      <button class="btn" onclick="calcCraft()" data-i18n="construction.calculate">Calculate</button>
     </div>
     <div class="soute-row">
-      <label>Cargo capacity (units):</label>
+      <label data-i18n="construction.cargo.label">Cargo capacity (units):</label>
       <input type="number" id="craftSoute" value="990" min="1" style="width:120px;padding-left:12px">
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
-      <p class="hint" id="stockHint">// connect via the registry to see your live stock</p>
+      <p class="hint" id="stockHint" data-i18n="construction.hint.nochar">// connect via the registry to see your live stock</p>
       <div id="refreshStockWrap" style="display:none;align-items:center;gap:10px">
         <span id="refreshStockStatus" style="font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text3)"></span>
         <button class="btn" id="refreshStockBtn" onclick="refreshStock()"
+          data-i18n="construction.refresh"
           style="height:34px;padding:0 16px;font-size:11px;letter-spacing:2px">
           ⟳ Refresh Stock
         </button>
@@ -57,10 +58,10 @@
 
     <!-- Étape 4 : Produit final -->
     <div class="tier-block">
-      <div class="tier-title">STEP 4 — <span>FINAL PRODUCT</span></div>
+      <div class="tier-title"><span data-i18n="construction.step4.title">STEP 4 —</span> <span data-i18n="construction.step4.span">FINAL PRODUCT</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
-          <span>Item</span><span style="text-align:right">To produce</span><span style="text-align:right">Stock</span>
+          <span data-i18n="construction.step4.col.item">Item</span><span style="text-align:right" data-i18n="construction.step4.col.produce">To produce</span><span style="text-align:right" data-i18n="construction.step4.col.stock">Stock</span>
         </div>
         <div id="craftFinal"></div>
       </div>
@@ -68,10 +69,10 @@
 
     <!-- Étape 3 : Components -->
     <div class="tier-block">
-      <div class="tier-title">STEP 3 — <span>COMPONENTS TO CRAFT</span></div>
+      <div class="tier-title"><span data-i18n="construction.step3.title">STEP 3 —</span> <span data-i18n="construction.step3.span">COMPONENTS TO CRAFT</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
-          <span>Component</span><span style="text-align:right">Needed → to craft</span><span style="text-align:right">Stock</span>
+          <span data-i18n="construction.step3.col.component">Component</span><span style="text-align:right" data-i18n="construction.step3.col.needed">Needed → to craft</span><span style="text-align:right" data-i18n="construction.step4.col.stock">Stock</span>
         </div>
         <div id="craftComponents"></div>
       </div>
@@ -79,10 +80,10 @@
 
     <!-- Matières brutes consommées -->
     <div class="tier-block">
-      <div class="tier-title">RAW MATERIALS — <span>CONSUMED BY COMPONENTS</span></div>
+      <div class="tier-title"><span data-i18n="construction.raw.title">RAW MATERIALS —</span> <span data-i18n="construction.raw.span">CONSUMED BY COMPONENTS</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 130px 110px">
-          <span>Raw material</span><span style="text-align:right">Required</span><span style="text-align:right">Stock</span>
+          <span data-i18n="construction.raw.col.material">Raw material</span><span style="text-align:right" data-i18n="construction.raw.col.required">Required</span><span style="text-align:right" data-i18n="construction.step4.col.stock">Stock</span>
         </div>
         <div id="craftMatieres"></div>
       </div>
@@ -90,10 +91,10 @@
 
     <!-- Étape 2 : Intermediates -->
     <div class="tier-block">
-      <div class="tier-title">STEP 2 — <span>INTERMEDIATES TO REFINE</span></div>
+      <div class="tier-title"><span data-i18n="construction.step2.title">STEP 2 —</span> <span data-i18n="construction.step2.span">INTERMEDIATES TO REFINE</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 200px 110px">
-          <span>Intermediate</span><span style="text-align:right">To refine → produces</span><span style="text-align:right">Stock</span>
+          <span data-i18n="construction.step2.col.intermediate">Intermediate</span><span style="text-align:right" data-i18n="construction.step2.col.refine">To refine → produces</span><span style="text-align:right" data-i18n="construction.step4.col.stock">Stock</span>
         </div>
         <div id="craftInter"></div>
       </div>
@@ -101,10 +102,10 @@
 
     <!-- Étape 1 : Matrixs to mine -->
     <div class="tier-block">
-      <div class="tier-title">STEP 1 — <span>MATRICES TO MINE</span></div>
+      <div class="tier-title"><span data-i18n="construction.step1.title">STEP 1 —</span> <span data-i18n="construction.step1.span">MATRICES TO MINE</span></div>
       <div class="panel" style="padding:14px">
         <div class="tbl-head" style="grid-template-columns:1fr 80px 130px 110px">
-          <span>Matrix</span><span>Asteroid</span><span style="text-align:right">To mine</span><span style="text-align:right">Stock</span>
+          <span data-i18n="construction.step1.col.matrix">Matrix</span><span data-i18n="construction.step1.col.asteroid">Asteroid</span><span style="text-align:right" data-i18n="construction.step1.col.tomine">To mine</span><span style="text-align:right" data-i18n="construction.step4.col.stock">Stock</span>
         </div>
         <div id="craftMatrixs"></div>
       </div>
@@ -112,7 +113,7 @@
 
     <!-- Plan of mining -->
     <div class="tier-block">
-      <div class="tier-title">MINING OPERATIONS — <span>TRIPS REQUIRED</span></div>
+      <div class="tier-title"><span data-i18n="construction.mining.title">MINING OPERATIONS —</span> <span data-i18n="construction.mining.span">TRIPS REQUIRED</span></div>
       <div class="trip-grid" id="craftTrips"></div>
     </div>
 
@@ -125,16 +126,15 @@
 <script>
 injectNav('construction');
 
-window.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('langReady', () => {
   if (window.selChar) {
     document.getElementById('stockHint').innerHTML =
-      `// stocks of <span style="color:var(--accent)">${esc(window.selChar.name)}</span> taken into account`;
+      `// ${t('construction.hint.stocks_of')} <span style="color:var(--accent)">${esc(window.selChar.name)}</span> ${t('construction.hint.taken_into_account')}`;
     document.getElementById('refreshStockWrap').style.display = 'flex';
-    // Afficher le nombre d'items déjà en mémoire
     const count = Object.keys(window.ssuStock || {}).length;
     if (count > 0) {
       const statusEl = document.getElementById('refreshStockStatus');
-      statusEl.textContent = `${count} item types in memory`;
+      statusEl.textContent = `${count} ${t('construction.hint.items_memory')}`;
     }
   }
 });
@@ -145,9 +145,9 @@ async function refreshStock() {
   const btn      = document.getElementById('refreshStockBtn');
   const statusEl = document.getElementById('refreshStockStatus');
   btn.disabled = true;
-  btn.textContent = '⟳ Scanning...';
+  btn.textContent = t('construction.refreshing');
   statusEl.style.color = 'var(--text3)';
-  statusEl.textContent = 'Querying blockchain...';
+  statusEl.textContent = t('construction.hint.querying');
 
   // Récupérer la sélection SSU depuis sessionStorage (faite dans le dashboard)
   const savedSel  = sessionStorage.getItem('eve_ssu_selection');
@@ -173,12 +173,10 @@ async function refreshStock() {
     sessionStorage.setItem('eve_ssu_cards', JSON.stringify(ssuCards));
     NAV.setDashLoaded(true);
 
-    const selLabel = selectedIds
-      ? `${selCount}/${ssuCards.length} SSU selected`
-      : `${ssuCards.length} SSU`;
+
 
     statusEl.style.color = 'var(--green)';
-    statusEl.textContent = `✓ ${selLabel} · ${Object.keys(newStock).length} items`;
+    statusEl.textContent = `✓ ${selCount}/${ssuCards.length} SSU ${t('construction.ssu_selected')} · ${Object.keys(newStock).length} ${t('construction.items')}`;
 
     // Relancer le calcul si un craft est déjà affiché
     if (document.getElementById('craftResult').classList.contains('visible')) {
@@ -189,7 +187,7 @@ async function refreshStock() {
     statusEl.textContent = `✗ ${e.message.slice(0, 40)}`;
   } finally {
     btn.disabled = false;
-    btn.textContent = '⟳ Refresh Stock';
+    btn.textContent = t('construction.refresh');
   }
 }
 
@@ -243,10 +241,10 @@ function calcCraft() {
           <div class="mat-name">${esc(name)}</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
             ${d.batches > 0
-              ? `<span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700">Craft ${d.toCraft} units</span>
-                 <span style="color:var(--text3);font-size:10px"> using</span>
+              ? `<span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700">${t('construction.craft_units', {n: d.toCraft})}</span>
+                 <span style="color:var(--text3);font-size:10px"> ${t('construction.using')}</span>
                  <div style="color:var(--text2);margin-top:2px;font-size:10px">${inputsDetail}</div>`
-              : `<span style="color:var(--green);font-size:13px">✓ Stock sufficient</span>`}
+              : `<span style="color:var(--green);font-size:13px">${t('construction.stock_ok')}</span>`}
           </div>
           <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
         </div>`;
@@ -260,7 +258,7 @@ function calcCraft() {
         <div class="mat-qty need">${d.needed.toLocaleString()}</div>
         <div class="mat-qty ${cls(d.inStock, d.needed)}">${stk(d.inStock)}</div>
       </div>`).join('')
-    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ All in stock</div></div>`;
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">${t('construction.all_in_stock')}</div></div>`;
 
   // ── Étape 2 : Intermediates ─────────────────────────────────
   // Collecter toutes les matières réellement utilisées dans les recettes
@@ -280,14 +278,14 @@ function calcCraft() {
         <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
           <div class="mat-name">${esc(name)}</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
-            <span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px">Refine ${d.toUse.toLocaleString()} units</span>
-            <span style="color:var(--text3);font-size:10px"> to obtain</span><br>
+            <span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px">${t('construction.refine_units', {n: d.toUse.toLocaleString()})}</span>
+            <span style="color:var(--text3);font-size:10px"> ${t('construction.to_obtain')}</span><br>
             ${prod}
           </div>
           <div class="mat-qty ${d.inStock >= d.toUse ? 'ok' : d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
         </div>`;
     }).join('')
-    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Nothing to refine</div></div>`;
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">${t('construction.nothing_refine')}</div></div>`;
 
   // ── Étape 1 : Matrixs ───────────────────────────────────────
   document.getElementById('craftMatrixs').innerHTML =
@@ -302,16 +300,16 @@ function calcCraft() {
         </div>
         <div class="mat-qty ${d.inStock >= d.toMine ? 'ok' : d.inStock > 0 ? 'partial' : ''}">${stk(d.inStock)}</div>
       </div>`).join('')
-    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">✓ Nothing to mine</div></div>`;
+    || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">${t('construction.nothing_mine')}</div></div>`;
 
   // ── Plan of mining ───────────────────────────────────────────
   if (Object.keys(r.byAsteroid).length === 0) {
     document.getElementById('craftTrips').innerHTML = `
       <div class="trip-card" style="border-left-color:var(--green)">
-        <div class="trip-asteroid">✓ STATUS: COMPLETE</div>
-        <div class="trip-resource">Everything in stock!</div>
+        <div class="trip-asteroid">${t('construction.complete')}</div>
+        <div class="trip-resource">${t('construction.everything_stock')}</div>
         <div class="trip-count">0</div>
-        <div class="trip-label">trip needed</div>
+        <div class="trip-label">${t('construction.trip')} needed</div>
       </div>`;
     return;
   }
@@ -333,7 +331,7 @@ function calcCraft() {
           <div class="trip-asteroid" style="color:${col}">${esc(ast)}</div>
           <div class="trip-resource">${lines.map(l => esc(l.name)).join(', ')}</div>
           <div class="trip-count">${maxTrips}</div>
-          <div class="trip-label">trip${maxTrips>1?'s':''} of mining</div>
+          <div class="trip-label">${maxTrips>1 ? t('construction.trips') : t('construction.trip')} ${t('construction.of_mining')}</div>
           <div class="trip-detail">${detail}</div>
         </div>`;
     }).join('');
@@ -341,7 +339,7 @@ function calcCraft() {
 </script>
   <footer>
     <div>Blockchain: <span>Sui Testnet</span> &nbsp;·&nbsp; EVE World <span>v0.0.18</span></div>
-    <div style="margin-top:4px;opacity:.5">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
+    <div style="margin-top:4px;opacity:.5" data-i18n="footer.unofficial">EF Mining Planner — Unofficial community tool · Not affiliated with CCP Games</div>
     <div style="margin-top:6px;font-size:9px;letter-spacing:2px">
       Built by <a href="index.html" style="color:var(--accent);text-decoration:none;letter-spacing:2px" title="Find Ekno in the Registry">EKNO</a>
       <span style="opacity:.4"> · EVE Frontier</span>

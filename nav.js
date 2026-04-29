@@ -81,10 +81,10 @@ window.ssuStock = {};
 // ── HTML de la nav (injecté dans chaque page) ─────────────────────
 function injectNav(activePage) {
   const pages = [
-    { id: 'registry',     label: '◈ Registry',      href: 'index.html'         },
-    { id: 'dashboard',    label: '⬡ Dashboard',   href: 'dashboard.html'    },
-    { id: 'construction', label: '⚙ Construction', href: 'construction.html' },
-    { id: 'recipes',      label: '◧ Recipes',      href: 'recipes.html'      },
+    { id: 'registry',     label: `◈ ${t('nav.registry')}`,      href: 'index.html'         },
+    { id: 'dashboard',    label: `⬡ ${t('nav.dashboard')}`,     href: 'dashboard.html'    },
+    { id: 'construction', label: `⚙ ${t('nav.construction')}`,  href: 'construction.html' },
+    { id: 'recipes',      label: `◧ ${t('nav.recipes')}`,       href: 'recipes.html'      },
   ];
 
   const tabs = pages.map(p => `
@@ -111,14 +111,26 @@ function injectNav(activePage) {
         <div class="nav-logo-text">EF MINING<span>PLANNER</span></div>
       </a>
       <div class="nav-tabs">${tabs}</div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <select id="langPicker" onchange="loadLang(this.value)"
+          style="background:var(--bg3);border:1px solid var(--border);
+                 color:var(--text3);font-family:'Share Tech Mono',monospace;
+                 font-size:10px;padding:4px 8px;cursor:pointer;height:28px;outline:none">
+          <option value="en">🇬🇧 EN</option>
+          <option value="fr">🇫🇷 FR</option>
+          <option value="es">🇪🇸 ES</option>
+          <option value="ru">🇷🇺 RU</option>
+        </select>
       <div class="nav-char" id="navChar">
         <div class="nav-char-dot"></div>
         <span class="nav-char-name" id="navCharName">—</span>
         <span class="nav-char-x" onclick="NAV.clearChar();location.reload();" title="Disconnect">✕</span>
       </div>
+      </div>
     </nav>`);
 
   NAV.init(activePage);
+  initLang(activePage);
 }
 
 // ── Utilitaires communs ───────────────────────────────────────────
@@ -145,4 +157,68 @@ function cp(id, label, btn) {
       setTimeout(() => btn.textContent = label, 1500);
     });
   }
+}
+
+// ══ I18N — Moteur de traduction ═══════════════════════════════════
+const SUPPORTED_LANGS = ['en', 'fr', 'es', 'ru'];
+let i18nData = {};
+
+// Charger une langue et l'appliquer
+async function loadLang(lang) {
+  if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
+  try {
+    const r = await fetch(`lang/${lang}.json`);
+    if (!r.ok) throw new Error();
+    i18nData = await r.json();
+  } catch(e) {
+    // Fallback : si le fichier ne charge pas, on garde l'anglais en mémoire
+    console.warn(`i18n: could not load lang/${lang}.json`);
+    i18nData = {};
+  }
+  localStorage.setItem('eve_lang', lang);
+  // Mettre à jour le sélecteur
+  const picker = document.getElementById('langPicker');
+  if (picker) picker.value = lang;
+  // Appliquer les traductions
+  applyTranslations();
+}
+
+// Traduire une clé (avec remplacement optionnel de {n})
+function t(key, replacements = {}) {
+  let text = i18nData[key] || key;
+  for (const [k, v] of Object.entries(replacements)) {
+    text = text.replace(`{${k}}`, v);
+  }
+  return text;
+}
+
+// Appliquer toutes les traductions sur la page
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.tagName === 'INPUT' && el.placeholder) {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  // Attributs placeholder séparés
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+}
+
+// Initialiser la langue au chargement
+function initLang(activePage) {
+  const saved = localStorage.getItem('eve_lang') || 'en';
+  loadLang(saved).then(() => {
+    // Mettre à jour les labels de la nav maintenant que la langue est chargée
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      const id = tab.dataset.page;
+      const icons = { registry:'◈', dashboard:'⬡', construction:'⚙', recipes:'◧' };
+      const keys  = { registry:'nav.registry', dashboard:'nav.dashboard', construction:'nav.construction', recipes:'nav.recipes' };
+      if (id && keys[id]) tab.textContent = `${icons[id]} ${t(keys[id])}`;
+    });
+    document.dispatchEvent(new CustomEvent('langReady'));
+  });
 }
