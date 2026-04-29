@@ -17,42 +17,25 @@
 
   <div class="panel cut" style="padding-top:28px">
     <div class="panel-label" data-i18n="construction.panel.label">TARGET</div>
-    <div class="craft-form" style="grid-template-columns:1fr 1fr 1fr auto">
-  <div class="form-group">
-    <label data-i18n="construction.machine.label">Available machine</label>
-    <select id="craftMachine" onchange="onMachineChange()">
-      <optgroup label="Portable">
-        <option value="Field Printer">Field Printer</option>
-        <option value="Field Refinery">Field Refinery</option>
-      </optgroup>
-      <optgroup label="Standard">
-        <option value="Mini Printer" selected>Mini Printer</option>
-        <option value="Printer">Printer</option>
-        <option value="Refinery">Refinery</option>
-        <option value="Assembler">Assembler</option>
-      </optgroup>
-      <optgroup label="Heavy">
-        <option value="Heavy Printer">Heavy Printer</option>
-        <option value="Heavy Refinery">Heavy Refinery</option>
-        <option value="Mini Berth">Mini Berth</option>
-        <option value="Berth">Berth</option>
-        <option value="Heavy Berth">Heavy Berth</option>
-      </optgroup>
-      <optgroup label="Special">
-        <option value="Nursery">Nursery</option>
-      </optgroup>
-    </select>
-  </div>
-  <div class="form-group">
-    <label data-i18n="construction.item.label">Final item to craft</label>
-    <select id="craftItem"></select>
-  </div>
-  <div class="form-group">
+    <div class="craft-form">
+      <div class="form-group">
+        <label data-i18n="construction.item.label">Final item to craft</label>
+        <select id="craftItem">
+          <optgroup label="Final Products">
+            <option value="building_foam">Building Foam</option>
+          </optgroup>
+          <optgroup label="Components">
+            <option value="reinforced_alloys">Reinforced Alloys</option>
+            <option value="carbon_weave">Carbon Weave</option>
+            <option value="thermal_composites">Thermal Composites</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group">
         <label data-i18n="construction.qty.label">Desired quantity</label>
         <input type="number" id="craftQty" value="10" min="1" max="9999" style="padding-left:12px">
       </div>
       <button class="btn" onclick="calcCraft()" data-i18n="construction.calculate">Calculate</button>
-    </div>
     </div>
     <div class="soute-row">
       <label data-i18n="construction.cargo.label">Cargo capacity (units):</label>
@@ -150,29 +133,11 @@ document.addEventListener('langReady', () => {
     document.getElementById('refreshStockWrap').style.display = 'flex';
     const count = Object.keys(window.ssuStock || {}).length;
     if (count > 0) {
-      document.getElementById('refreshStockStatus').textContent =
-        `${count} ${t('construction.hint.items_memory')}`;
+      const statusEl = document.getElementById('refreshStockStatus');
+      statusEl.textContent = `${count} ${t('construction.hint.items_memory')}`;
     }
   }
-  // Initialiser la machine par défaut
-  onMachineChange();
 });
-
-function onMachineChange() {
-  const machine = document.getElementById('craftMachine').value;
-  setMachine(machine);
-  
-  // Mettre à jour la liste des items craftables par cette machine
-  const recipes = getRecipesForMachine(machine);
-  const select  = document.getElementById('craftItem');
-  select.innerHTML = Object.entries(recipes)
-    .sort(([,a], [,b]) => a.name.localeCompare(b.name))
-    .map(([key, rec]) => `<option value="${key}">${rec.name}</option>`)
-    .join('');
-    
-  // Vider le résultat précédent
-  document.getElementById('craftResult').classList.remove('visible');
-}
 
 // ── Refresh stock sans quitter la page ───────────────────────────
 async function refreshStock() {
@@ -296,12 +261,19 @@ function calcCraft() {
     || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">${t('construction.all_in_stock')}</div></div>`;
 
   // ── Étape 2 : Intermediates ─────────────────────────────────
+  // Collecter toutes les matières réellement utilisées dans les recettes
+  const usedMats = new Set();
+  for (const comp of Object.values(COMPOSANTS)) {
+    for (const inp of comp.inputs) usedMats.add(inp.name);
+  }
+
   document.getElementById('craftInter').innerHTML =
     Object.entries(r.intermediaires).map(([name, d]) => {
-      const prod = d.produces
-        .filter(p => (r.matieres[p.name]?.manque || 0) > 0)
-        .map(p => `<span style="color:var(--green);font-weight:bold">${p.qty.toLocaleString()}</span> ${esc(p.name)}`)
-        .join(' + ');
+      // Filtrer uniquement les outputs utiles (dans les recettes), et seulement les manquants
+      const usefulProd = d.produces.filter(p => usedMats.has(p.name) && (r.matieres[p.name]?.manque || 0) > 0);
+      const prod = usefulProd.map(p =>
+        `<span style="color:var(--green);font-weight:bold">${p.qty.toLocaleString()}</span> ${esc(p.name)}`
+      ).join(' + ');
       return `
         <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
           <div class="mat-name">${esc(name)}</div>
