@@ -81,10 +81,10 @@ window.ssuStock = {};
 // ── HTML de la nav (injecté dans chaque page) ─────────────────────
 function injectNav(activePage) {
   const pages = [
-    { id: 'registry',     label: '◈ Registry',      href: 'index.html'         },
-    { id: 'dashboard',    label: '⬡ Dashboard',   href: 'dashboard.html'    },
-    { id: 'construction', label: '⚙ Construction', href: 'construction.html' },
-    { id: 'recipes',      label: '◧ Recipes',      href: 'recipes.html'      },
+    { id: 'registry',     label: `◈ ${t('nav.registry')}`,      href: 'index.html'         },
+    { id: 'dashboard',    label: `⬡ ${t('nav.dashboard')}`,     href: 'dashboard.html'    },
+    { id: 'construction', label: `⚙ ${t('nav.construction')}`,  href: 'construction.html' },
+    { id: 'recipes',      label: `◧ ${t('nav.recipes')}`,       href: 'recipes.html'      },
   ];
 
   const tabs = pages.map(p => `
