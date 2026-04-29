@@ -146,3 +146,58 @@ function cp(id, label, btn) {
     });
   }
 }
+
+// ══ I18N — Moteur de traduction ═══════════════════════════════════
+const SUPPORTED_LANGS = ['en', 'fr'];
+let i18nData = {};
+
+// Charger une langue et l'appliquer
+async function loadLang(lang) {
+  if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
+  try {
+    const r = await fetch(`lang/${lang}.json`);
+    if (!r.ok) throw new Error();
+    i18nData = await r.json();
+  } catch(e) {
+    // Fallback : si le fichier ne charge pas, on garde l'anglais en mémoire
+    console.warn(`i18n: could not load lang/${lang}.json`);
+    i18nData = {};
+  }
+  localStorage.setItem('eve_lang', lang);
+  // Mettre à jour le sélecteur
+  const picker = document.getElementById('langPicker');
+  if (picker) picker.value = lang;
+  // Appliquer les traductions
+  applyTranslations();
+}
+
+// Traduire une clé (avec remplacement optionnel de {n})
+function t(key, replacements = {}) {
+  let text = i18nData[key] || key;
+  for (const [k, v] of Object.entries(replacements)) {
+    text = text.replace(`{${k}}`, v);
+  }
+  return text;
+}
+
+// Appliquer toutes les traductions sur la page
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (el.tagName === 'INPUT' && el.placeholder) {
+      el.placeholder = t(key);
+    } else {
+      el.textContent = t(key);
+    }
+  });
+  // Attributs placeholder séparés
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+}
+
+// Initialiser la langue au chargement
+function initLang() {
+  const saved = localStorage.getItem('eve_lang') || 'en';
+  loadLang(saved);
+}
