@@ -17,6 +17,7 @@
 
   <!-- Carte personnage sélectionné -->
   <div class="sel-card" id="selCard" style="padding-top:22px">
+  <div class="sel-card-label" data-i18n="registry.selected.label">SELECTED CHARACTER</div>
     <div class="sel-name" id="selName">—</div>
     <div class="sel-fields">
       <div class="sel-field">
@@ -46,7 +47,7 @@
 
   <!-- Recherche -->
   <div class="panel cut" style="padding-top:28px">
-    <div class="panel-label">SEARCH</div>
+    <div class="panel-label" data-i18n="registry.search.label">SEARCH</div>
     <div class="search-row">
       <div class="input-wrap">
         <input type="text" id="regSearch" data-i18n-placeholder="registry.search.placeholder" placeholder="Filter by name or ID..."
@@ -109,7 +110,7 @@ async function loadRegistry() {
     allChars = await r.json();
     filtered = allChars;
     renderReg(allChars);
-    setStatus('reg', 'on', `${allChars.length} characters`);
+    setStatus('reg', 'on', `${allChars.length} ${t('registry.characters')}`);
     document.getElementById('regBadge').innerHTML =
       `<span class="badge">${allChars.length}</span>`;
 
