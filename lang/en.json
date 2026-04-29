@@ -35,7 +35,8 @@
   "dashboard.select.body": "Click on a Storage Unit to include or exclude it from your construction stock calculations.",
   "dashboard.select.count": "selected — stock from deselected SSU will be ignored in the Construction planner.",
   "dashboard.ssu.empty": "Empty",
-  "dashboard.ssu.offline": "Offline",
+  "dashboard.ssu.online": "ONLINE",
+  "dashboard.ssu.offline": "OFFLINE",
   "dashboard.storage": "STORAGE",
 
   "construction.title": "Construction",
