@@ -98,6 +98,7 @@
   "construction.hint.querying": "Querying blockchain...",
   "construction.ssu_selected": "selected",
   "construction.items": "items",
+  "construction.machine.label": "Available machine"
 
   "recipes.title": "Recipes",
   "recipes.subtitle": "CRAFT RECIPES /// EVE FRONTIER",
