@@ -209,5 +209,8 @@ function applyTranslations() {
 // Initialiser la langue au chargement
 function initLang() {
   const saved = localStorage.getItem('eve_lang') || 'en';
-  loadLang(saved);
+  loadLang(saved).then(() => {
+    // Déclencher un événement custom pour signaler que la langue est prête
+    document.dispatchEvent(new CustomEvent('langReady'));
+  });
 }
