@@ -132,6 +132,8 @@ function restoreFromCache() {
   try {
     const cached = JSON.parse(sessionStorage.getItem('eve_ssu_cards') || '[]');
     if (cached.length > 0) {
+      document.getElementById('dashTitle').textContent =
+        window.selChar.name.toUpperCase() + ' — ' + t('dashboard.storage');
       renderSSU(cached);
       setStatus('dash', 'on', `${cached.length} SSU (cached)`);
       document.getElementById('dashBadge').innerHTML =
@@ -270,7 +272,7 @@ function renderSSU(ssuCards) {
       padding:2px 7px;border:1px solid ${isOnline ? 'var(--green)' : 'var(--text3)'};
       color:${isOnline ? 'var(--green)' : 'var(--text3)'};
       margin-left:8px;vertical-align:middle;
-    ">${ssu.status || '?'}</span>`;
+    ">${ssu.status === 'ONLINE' ? t('dashboard.ssu.online') : ssu.status === 'OFFLINE' ? t('dashboard.ssu.offline') : ssu.status || '?'}</span>`;
 
     const itemsHtml = ssu.items.length === 0
       ? `<div class="ssu-empty">${isOnline ? t('dashboard.ssu.empty') : t('dashboard.ssu.offline')}</div>`
