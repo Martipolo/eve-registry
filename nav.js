@@ -181,6 +181,17 @@ async function loadLang(lang) {
   if (picker) picker.value = lang;
   // Appliquer les traductions
   applyTranslations();
+  // Mettre à jour les textes dynamiques selon la page
+  if (typeof loadRegistry === 'function') loadRegistry();
+  if (typeof renderRecipes === 'function') renderRecipes();
+  if (typeof onMachineChange === 'function') onMachineChange();
+  // Mettre à jour les labels de la nav
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    const id = tab.dataset.page;
+    const icons = { registry:'◈', dashboard:'⬡', construction:'⚙', recipes:'◧' };
+    const keys  = { registry:'nav.registry', dashboard:'nav.dashboard', construction:'nav.construction', recipes:'nav.recipes' };
+    if (id && keys[id]) tab.textContent = `${icons[id]} ${t(keys[id])}`;
+  });
 }
 
 // Traduire une clé (avec remplacement optionnel de {n})

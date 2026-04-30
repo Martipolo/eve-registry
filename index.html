@@ -98,7 +98,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (window.selChar) showSelCard(window.selChar);
 });
 document.addEventListener('langReady', () => {
-  loadRegistry();
+  loadRegistry();  
 });
 
 // ── Chargement database.json ──────────────────────────────────────
@@ -119,12 +119,14 @@ async function loadRegistry() {
       const idx = filtered.findIndex(c => c.address === window.selChar.address);
       if (idx >= 0) document.querySelectorAll('.char-row')[idx]?.classList.add('hl');
     }
+    applyTranslations();
   } catch(e) {
     setStatus('reg', 'err', 'Erreur de chargement');
     document.getElementById('regResults').innerHTML =
       `<div class="empty"><div class="icon">◈</div><div>${e.message}</div></div>`;
   }
 }
+
 
 // ── Filtre ────────────────────────────────────────────────────────
 function filterReg() {
