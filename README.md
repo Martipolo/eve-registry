@@ -159,6 +159,13 @@ Pull requests are welcome! Most useful contributions:
 
 ---
 
+## 🗺️ Roadmap
+- [ ] Machine selector for recipes (Mini Printer vs Field Printer)
+- [ ] Compact mode for second monitor
+- [ ] Simplified mobile view
+
+---
+
 ## Disclaimer
 
 This is an **unofficial community tool** and is not affiliated with or endorsed by CCP Games.
