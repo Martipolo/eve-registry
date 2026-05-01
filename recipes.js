@@ -8,7 +8,7 @@
 //   CHAR  → Feldspar Crystals         (40u) → 10 Hydrocarbon Residue + 30 Silica Grains
 //
 // ÉTAPE 2 : Raffiner les INTERMÉDIAIRES → donne des MATIÈRES BRUTES
-//   10 Iron-Rich Nodules      → 198 Platinum-Group Veins + 20 Nickel-Iron Veins
+//   10 Iron-Rich Nodules      → 198 Nickel-Iron Veins + 20 Platinum-Group Veins
 //   20 Hydrocarbon Residue    → 180 Tholin Aggregates + 20 Troilite Sulfide Grains
 //   20 Silica Grains          → 50 Feldspar Crystal Shards + 150 Silicon Dust
 //
@@ -128,8 +128,8 @@ const INTERMEDIAIRES = {
   "Iron-Rich Nodules": {
     batch: 10, machine: "Refinery",
     outputs: [
-      { name: "Platinum-Group Veins", qty: 198 },
-      { name: "Nickel-Iron Veins",    qty:  20 },
+      { name: "Nickel-Iron Veins",    qty: 198 },
+      { name: "Platinum-Group Veins", qty:  20 },
     ]
   },
   "Hydrocarbon Residue": {
@@ -200,51 +200,83 @@ function _computeIntermediaires(result, stock) {
   }
 }
 
-// Calcule les matrices à partir des INTERMÉDIAIRES (chemin Mini Printer)
-function _computeMatrices(result, stock) {
-  for (const [interName, interData] of Object.entries(result.intermediaires)) {
-    if (interData.manque <= 0) continue;
-    let best = null;
-    for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
-      const out = matrixRec.outputs.find(o => o.name === interName);
-      if (!out) continue;
-      const batches = Math.ceil(interData.manque / out.qty);
-      if (!best || batches < best.batches) best = { matrixName, batches, rec: matrixRec };
-    }
-    if (!best) continue;
-    const existing = result.matrices[best.matrixName];
-    const batches  = existing ? Math.max(existing.batches, best.batches) : best.batches;
-    const toMine   = batches * best.rec.batch;
-    const inStock  = stock[best.matrixName] || 0;
-    const manque   = Math.max(0, toMine - inStock);
-    result.matrices[best.matrixName] = { toMine, inStock, manque, batches, asteroid: best.rec.asteroid, volume: best.rec.volume };
-  }
-}
-
-// Calcule les matrices directement depuis les MATIÈRES BRUTES (chemin Field Printer)
-function _computeMatricesFromMatieres(result, stock) {
-  for (const [matName, matData] of Object.entries(result.matieres)) {
-    if (matData.manque <= 0) continue;
-    let best = null;
-    for (const [matrixName, matrixRec] of Object.entries(MATRICES)) {
-      const out = matrixRec.outputs.find(o => o.name === matName);
-      if (!out) continue;
-      const batches = Math.ceil(matData.manque / out.qty);
-      if (!best || batches < best.batches) best = { matrixName, batches, rec: matrixRec };
-    }
-    if (!best) continue;
-    const existing = result.matrices[best.matrixName];
-    const batches  = existing ? Math.max(existing.batches, best.batches) : best.batches;
-    const toMine   = batches * best.rec.batch;
-    const inStock  = stock[best.matrixName] || 0;
-    const manque   = Math.max(0, toMine - inStock);
-    result.matrices[best.matrixName] = { toMine, inStock, manque, batches, asteroid: best.rec.asteroid, volume: best.rec.volume };
-  }
-}
-
-// Construit result.byAsteroid depuis result.matrices
-function _buildByAsteroid(result) {
+// Calcule toutes les matrices en une passe, avec byproducts chaînés.
+// Remplace _computeMatrices + _computeMatricesFromMatieres + _buildByAsteroid.
+//
+// Principe : trier les matières par nombre de sources de matrice (unique en premier).
+// Ex: Iron-Rich Nodules → SLAG seulement (1 source) est traité avant
+//     Silica Grains → SLAG ou CHAR (2 sources).
+// Les byproducts de SLAG (SG, Palladium) réduisent automatiquement les besoins suivants.
+function _computeAllMatrices(result, stock) {
+  result.matrices  = {};
   result.byAsteroid = {};
+
+  // ── Collecter les besoins BRUTS (avant déduction stock) ─────────
+  // Une même matière peut apparaître à la fois comme input de raffinerie
+  // ET comme besoin direct (ex: Silica Grains pour raffiner FCS + direct TC).
+  // On additionne les deux besoins bruts et on soustrait le stock UNE SEULE FOIS.
+  const grossNeeded = {};
+
+  for (const [name, data] of Object.entries(result.intermediaires)) {
+    if (data.toUse > 0) grossNeeded[name] = (grossNeeded[name] || 0) + data.toUse;
+  }
+
+  for (const [name, data] of Object.entries(result.matieres)) {
+    if (data.needed <= 0) continue;
+    const fromRefinery = Object.values(result.intermediaires).some(
+      i => i.produces?.some(p => p.name === name)
+    );
+    if (!fromRefinery) grossNeeded[name] = (grossNeeded[name] || 0) + data.needed;
+  }
+
+  const remaining = {};
+  for (const [name, gross] of Object.entries(grossNeeded)) {
+    const net = Math.max(0, gross - (stock[name] || 0));
+    if (net > 0) remaining[name] = net;
+  }
+
+  // ── Trier : sources uniques d'abord ─────────────────────────────
+  const order = Object.keys(remaining).sort((a, b) => {
+    const optA = Object.values(MATRICES).filter(m => m.outputs.some(o => o.name === a)).length;
+    const optB = Object.values(MATRICES).filter(m => m.outputs.some(o => o.name === b)).length;
+    return optA - optB;
+  });
+
+  // ── Calculer les matrices, byproducts déduits à chaque étape ────
+  for (const matName of order) {
+    const needed = remaining[matName];
+    if (needed <= 0) continue;
+
+    let best = null;
+    for (const [mxName, mxRec] of Object.entries(MATRICES)) {
+      const out = mxRec.outputs.find(o => o.name === matName);
+      if (!out) continue;
+      const batches = Math.ceil(needed / out.qty);
+      if (!best || batches < best.batches) best = { mxName, batches, rec: mxRec, out };
+    }
+    if (!best) continue;
+
+    const existingBatches  = result.matrices[best.mxName]?.batches || 0;
+    const alreadyProduced  = existingBatches * best.out.qty;
+    if (alreadyProduced >= needed) continue;
+
+    const additionalBatches = Math.ceil((needed - alreadyProduced) / best.out.qty);
+    const newTotal = existingBatches + additionalBatches;
+    const toMine   = newTotal * best.rec.batch;
+    const inStock  = stock[best.mxName] || 0;
+    const manque   = Math.max(0, toMine - inStock);
+    result.matrices[best.mxName] = { toMine, inStock, manque, batches: newTotal, asteroid: best.rec.asteroid, volume: best.rec.volume };
+
+    // Soustraire les byproducts des besoins restants
+    for (const out of best.rec.outputs) {
+      if (out.name === matName) continue;
+      if (remaining[out.name] !== undefined) {
+        remaining[out.name] = Math.max(0, remaining[out.name] - additionalBatches * out.qty);
+      }
+    }
+  }
+
+  // ── Construire byAsteroid ────────────────────────────────────────
   for (const [name, data] of Object.entries(result.matrices)) {
     if (data.manque <= 0) continue;
     const ast = data.asteroid;
@@ -277,9 +309,7 @@ function computeCraft(recipeKey, wantedQty, machineChoices = {}) {
       result.matieres[inp.name] = { needed, inStock: inStk, manque: Math.max(0, needed - inStk) };
     }
     _computeIntermediaires(result, stock);
-    _computeMatrices(result, stock);
-    _computeMatricesFromMatieres(result, stock);
-    _buildByAsteroid(result);
+    _computeAllMatrices(result, stock);
     return result;
   }
 
@@ -317,9 +347,7 @@ function computeCraft(recipeKey, wantedQty, machineChoices = {}) {
 
   // ── ÉTAPES 2 & 1 : intermédiaires + matrices ────────────────────
   _computeIntermediaires(result, stock);
-  _computeMatrices(result, stock);
-  _computeMatricesFromMatieres(result, stock);
-  _buildByAsteroid(result);
+  _computeAllMatrices(result, stock);
 
   return result;
 }
