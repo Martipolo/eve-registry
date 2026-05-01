@@ -98,6 +98,12 @@
   "construction.hint.querying": "Querying blockchain...",
   "construction.ssu_selected": "selected",
   "construction.items": "items",
+  "construction.stock_notice": "Already in stock: {n} {item} — craft will add to your existing supply",
+  "construction.comp_stock_notice": "{n} {item} already in stock — deducted from the needed quantity",
+  "construction.to_craft": "to craft",
+  "construction.produced": "produced",
+  "construction.batch": "batch",
+  "construction.batches": "batches",
 
   "recipes.title": "Recipes",
   "recipes.subtitle": "CRAFT RECIPES /// EVE FRONTIER",

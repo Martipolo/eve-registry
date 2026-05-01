@@ -84,7 +84,6 @@ function injectNav(activePage) {
     { id: 'registry',     label: `◈ ${t('nav.registry')}`,      href: 'index.html'         },
     { id: 'dashboard',    label: `⬡ ${t('nav.dashboard')}`,     href: 'dashboard.html'    },
     { id: 'construction', label: `⚙ ${t('nav.construction')}`,  href: 'construction.html' },
-    { id: 'recipes',      label: `◧ ${t('nav.recipes')}`,       href: 'recipes.html'      },
   ];
 
   const tabs = pages.map(p => `
@@ -183,13 +182,12 @@ async function loadLang(lang) {
   applyTranslations();
   // Mettre à jour les textes dynamiques selon la page
   if (typeof loadRegistry === 'function') loadRegistry();
-  if (typeof renderRecipes === 'function') renderRecipes();
   if (typeof onMachineChange === 'function') onMachineChange();
   // Mettre à jour les labels de la nav
   document.querySelectorAll('.nav-tab').forEach(tab => {
     const id = tab.dataset.page;
-    const icons = { registry:'◈', dashboard:'⬡', construction:'⚙', recipes:'◧' };
-    const keys  = { registry:'nav.registry', dashboard:'nav.dashboard', construction:'nav.construction', recipes:'nav.recipes' };
+    const icons = { registry:'◈', dashboard:'⬡', construction:'⚙' };
+    const keys  = { registry:'nav.registry', dashboard:'nav.dashboard', construction:'nav.construction' };
     if (id && keys[id]) tab.textContent = `${icons[id]} ${t(keys[id])}`;
   });
 }

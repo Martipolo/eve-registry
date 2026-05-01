@@ -98,6 +98,12 @@
   "construction.hint.querying": "Запрос блокчейна...",
   "construction.ssu_selected": "выбрано",
   "construction.items": "предметов",
+  "construction.stock_notice": "Уже на складе: {n} {item} — крафт добавится к существующему запасу",
+  "construction.comp_stock_notice": "{n} {item} уже на складе — вычтено из необходимого количества",
+  "construction.to_craft": "скрафтить",
+  "construction.produced": "произведено",
+  "construction.batch": "партия",
+  "construction.batches": "партий",
 
   "recipes.title": "Рецепты",
   "recipes.subtitle": "РЕЦЕПТЫ КРАФТА /// EVE FRONTIER",

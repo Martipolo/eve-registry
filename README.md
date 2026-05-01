@@ -1,6 +1,6 @@
 # ⬡ EF Mining Planner
 
-> An unofficial web tool for **EVE Frontier** players — built on-chain data from the Sui blockchain.
+> An unofficial web tool for **EVE Frontier** players — built on on-chain data from the Sui blockchain.
 
 🌐 **Live app:** [https://martipolo.github.io/EF-Mining-Planner/](https://martipolo.github.io/EF-Mining-Planner/)
 
@@ -20,50 +20,49 @@ Connect as your character and view your **Smart Storage Units** in real time.
 - See inventory, capacity, and ONLINE/OFFLINE status for each SSU
 - Select which SSU to include in your construction stock calculations
 
-## 💡 Getting the most out of EF Mining Planner
-
-**Use Smart Storage Units, not Field Storage!**
-
-Field Storage resources are **not recorded on the Sui blockchain**, 
-so this app cannot read them. Store your materials in **SSU** to get 
-accurate stock readings and precise craft calculations.
-SSU also provide better in-game security for your resources.
-
 ### ⚙ Construction Planner
 Plan your crafting sessions with full **multi-tier calculation**.
-- Choose a final product (Building Foam, Reinforced Alloys, Carbon Weave...)
+- Choose a final product (Building Foam) or a component directly (Reinforced Alloys, Carbon Weave, Thermal Composites)
 - Enter desired quantity and cargo capacity
+- **Per-component machine selector** — switch between Mini Printer and Field Printer for each component independently
+- Stock-aware notices: existing stock shown in context without blocking your craft plan
 - Automatically calculates:
-  - Components to craft (Tier 3 → 2)
+  - Components to craft with ingredient details per machine
   - Raw materials needed
   - Intermediates to refine
   - Matrices to mine per asteroid type (SLAG / COMET / CHAR)
   - **Number of mining trips** based on your cargo hold
-- Stock from your SSU is deducted automatically
+- Stock from your SSU is taken into account automatically
 
-### 📋 Recipes
-Full reference of all crafting recipes, organized by tier:
-- Step 4 — Final products
-- Step 3 — Components
-- Step 2 — Intermediates (refining)
-- Step 1 — Raw matrices (asteroids)
+## 💡 Getting the most out of EF Mining Planner
+
+**Use Smart Storage Units, not Field Storage!**
+
+Field Storage resources are **not recorded on the Sui blockchain**,
+so this app cannot read them. Store your materials in **SSU** to get
+accurate stock readings and precise craft calculations.
+SSU also provide better in-game security for your resources.
 
 ---
 
 ## Architecture
 
 ```
-eve-registry/
+EF-Mining-Planner/
 ├── index.html          # Character Registry
 ├── dashboard.html      # SSU Dashboard
 ├── construction.html   # Construction Planner
-├── recipes.html        # Recipe Reference
 ├── style.css           # Shared styles
-├── nav.js              # Navigation + shared state (sessionStorage)
+├── nav.js              # Navigation + i18n + shared state (sessionStorage)
 ├── sui.js              # Sui blockchain RPC calls + item name resolution
-├── recipes.js          # All craft recipes (T0 → T3) + calculator engine
+├── recipes.js          # All craft recipes + calculator engine
 ├── database.json       # Auto-generated character list (scraper output)
-└── scraper.js          # Node.js blockchain scraper
+├── scraper.js          # Node.js blockchain scraper
+└── lang/
+    ├── en.json
+    ├── fr.json
+    ├── es.json
+    └── ru.json
 ```
 
 ### How the data pipeline works
@@ -89,25 +88,29 @@ The **SSU Dashboard** queries the blockchain live (no caching between sessions),
 All recipes are in `recipes.js`. The structure follows 4 tiers:
 
 ```js
-// Tier 3 — Final product
+// Tier 4 — Final product
 RECIPES['my_item'] = {
   name: "My Item", batch: 10, machine: "Printer S",
   inputs: [ { name: "Reinforced Alloys", qty: 65 } ]
 };
 
-// Tier 2 — Component (crafted from raw materials)
-COMPOSANTS["My Component"] = {
-  batch: 14, machine: "Refinery M",
+// Tier 3 — Component, with per-machine recipes
+COMPOSANTS_BY_MACHINE["Mini Printer"]["My Component"] = {
+  batch: 14,
   inputs: [ { name: "Nickel-Iron Veins", qty: 1050 } ]
 };
+COMPOSANTS_BY_MACHINE["Field Printer"]["My Component"] = {
+  batch: 8,
+  inputs: [ { name: "Silica Grains", qty: 105 } ]
+};
 
-// Tier 1 — Intermediate (refined → produces raw materials)
+// Tier 2 — Intermediate (refined → produces raw materials)
 INTERMEDIAIRES["My Intermediate"] = {
-  batch: 20, machine: "Refinery S",
+  batch: 20, machine: "Refinery",
   outputs: [ { name: "Silicon Dust", qty: 150 } ]  // ← outputs, not inputs!
 };
 
-// Tier 0 — Raw matrix (mined from asteroids → produces intermediates)
+// Tier 1 — Raw matrix (mined from asteroids → produces intermediates)
 MATRICES["My Matrix"] = {
   batch: 40, asteroid: "SLAG", volume: 1,
   outputs: [ { name: "My Intermediate", qty: 30 } ]
@@ -128,14 +131,15 @@ Then add the option in `construction.html`:
 - **Data indexing:** GraphQL endpoint (`graphql.testnet.sui.io`)
 - **Hosting:** GitHub Pages (free, static)
 - **Automation:** GitHub Actions (daily cron)
+- **i18n:** EN / FR / ES / RU via `lang/*.json`
 
 ---
 
 ## Local Development
 
 ```bash
-git clone https://github.com/Martipolo/ef-mining-planner.git
-cd ef-mining-planner
+git clone https://github.com/Martipolo/EF-Mining-Planner.git
+cd EF-Mining-Planner
 
 # Run the scraper to regenerate database.json
 node scraper.js
@@ -160,7 +164,7 @@ Pull requests are welcome! Most useful contributions:
 ---
 
 ## 🗺️ Roadmap
-- [ ] Machine selector for recipes (Mini Printer vs Field Printer)
+- [x] Machine selector per component (Mini Printer vs Field Printer)
 - [ ] Compact mode for second monitor
 - [ ] Simplified mobile view
 

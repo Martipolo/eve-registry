@@ -98,6 +98,12 @@
   "construction.hint.querying": "Consultando blockchain...",
   "construction.ssu_selected": "seleccionado(s)",
   "construction.items": "items",
+  "construction.stock_notice": "Ya en stock: {n} {item} — el craft se añadirá a tu suministro existente",
+  "construction.comp_stock_notice": "{n} {item} ya en stock — deducidos de la cantidad necesaria",
+  "construction.to_craft": "a craftear",
+  "construction.produced": "producido(s)",
+  "construction.batch": "lote",
+  "construction.batches": "lotes",
 
   "recipes.title": "Recetas",
   "recipes.subtitle": "RECETAS DE CRAFT /// EVE FRONTIER",

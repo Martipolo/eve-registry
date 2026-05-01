@@ -20,7 +20,7 @@
     <div class="craft-form">
       <div class="form-group">
         <label data-i18n="construction.item.label">Final item to craft</label>
-        <select id="craftItem">
+        <select id="craftItem" onchange="window.machineChoices = {}">
           <optgroup label="Final Products">
             <option value="building_foam">Building Foam</option>
           </optgroup>
@@ -126,6 +126,26 @@
 <script>
 injectNav('construction');
 
+window.machineChoices = {};
+
+function setMachine(compName, machine) {
+  window.machineChoices[compName] = machine;
+  calcCraft();
+}
+
+function machineBtns(compName, currentMachine) {
+  return MACHINES.map(m => {
+    const active = currentMachine === m;
+    const label  = m === 'Mini Printer' ? 'MINI' : 'FIELD';
+    return `<button onclick="setMachine('${compName}','${m}')"
+      style="font-size:8px;letter-spacing:1px;padding:2px 6px;cursor:pointer;
+             font-family:'Share Tech Mono',monospace;line-height:1.5;
+             background:${active ? 'var(--accent)' : 'transparent'};
+             border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};
+             color:${active ? 'var(--bg)' : 'var(--text3)'}">${label}</button>`;
+  }).join('');
+}
+
 document.addEventListener('langReady', () => {
   if (window.selChar) {
     document.getElementById('stockHint').innerHTML =
@@ -201,32 +221,58 @@ function calcCraft() {
   const stk     = v => hasChar ? v.toLocaleString() : '—';
   const cls     = (inStock, needed) => inStock >= needed ? 'ok' : inStock > 0 ? 'partial' : 'need';
 
-  const r = computeCraft(itemKey, qty);
+  const r = computeCraft(itemKey, qty, window.machineChoices);
   if (!r) return;
   document.getElementById('craftResult').classList.add('visible');
 
   // ── Étape 4 : Produit final ──────────────────────────────────
   const isSelf = !!r.final.isSelfCraft || (r.final.toCraft !== undefined);
-  const finalStockCls = r.final.inStock >= r.final.needed ? 'ok' : r.final.inStock > 0 ? 'partial' : 'need';
-  document.getElementById('craftFinal').innerHTML = isSelf ? `
-    <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
-      <div class="mat-name">${esc(r.final.name)}</div>
-      <div class="mat-qty need">
-        ${r.final.needed} wanted
-        <span style="font-size:9px;color:var(--text3);display:block">
-          → craft ${r.final.toCraft} (${r.final.batches} batch${r.final.batches>1?'es':''})
-        </span>
-      </div>
-      <div class="mat-qty ${finalStockCls}">${stk(r.final.inStock || 0)}</div>
-    </div>` : `
+  const step4Head = document.getElementById('craftFinal').previousElementSibling;
+
+  const stockNotice = r.final.inStock > 0 ? `
+    <div style="margin:6px 0 2px;padding:7px 12px;border-left:2px solid var(--gold);
+                background:rgba(255,180,0,.07);font-family:'Share Tech Mono',monospace;
+                font-size:10px;letter-spacing:1px;color:var(--gold)">
+      ⚑ &nbsp;${t('construction.stock_notice', {n: r.final.inStock.toLocaleString(), item: esc(r.final.name)})}
+    </div>` : '';
+
+  if (isSelf) {
+    const selfRec = getComposantRecipe(r.final.name, r.final.machine || DEFAULT_MACHINE);
+    const selfInputs = selfRec
+      ? selfRec.inputs.map(inp =>
+          `<span style="color:var(--gold2);font-weight:bold">${(inp.qty * r.final.batches).toLocaleString()}</span> × ${esc(inp.name)}`
+        ).join(' &nbsp;+&nbsp; ')
+      : '';
+    step4Head.style.gridTemplateColumns = '1fr 1fr 110px';
+    step4Head.children[1].textContent = t('construction.step3.col.needed');
+    document.getElementById('craftFinal').innerHTML = `
+      ${stockNotice}
+      <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
+        <div class="mat-name">
+          ${esc(r.final.name)}
+          <div style="display:flex;gap:4px;margin-top:6px">${machineBtns(r.final.name, r.final.machine || DEFAULT_MACHINE)}</div>
+        </div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
+          <span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700">${t('construction.craft_units', {n: r.final.toCraft})}</span>
+          <span style="color:var(--text3);font-size:10px"> (${r.final.batches} ${r.final.batches>1 ? t('construction.batches') : t('construction.batch')}) ${t('construction.using')}</span>
+          <div style="color:var(--text2);margin-top:2px;font-size:10px">${selfInputs}</div>
+        </div>
+        <div class="mat-qty ${r.final.inStock > 0 ? 'ok' : ''}">${stk(r.final.inStock || 0)}</div>
+      </div>`;
+  } else {
+    step4Head.style.gridTemplateColumns = '1fr 200px 110px';
+    step4Head.children[1].textContent = t('construction.step4.col.produce');
+    document.getElementById('craftFinal').innerHTML = `
+    ${stockNotice}
     <div class="mat-row" style="grid-template-columns:1fr 200px 110px">
       <div class="mat-name">${esc(r.final.name)}</div>
       <div class="mat-qty need">
         ${r.final.needed}
-        <span style="font-size:9px;color:var(--text3)"> (${r.final.batches} batch${r.final.batches>1?'es':''})</span>
+        <span style="font-size:9px;color:var(--text3)"> (${r.final.batches} ${r.final.batches>1 ? t('construction.batches') : t('construction.batch')})</span>
       </div>
-      <div class="mat-qty">—</div>
+      <div class="mat-qty ${r.final.inStock > 0 ? 'ok' : ''}">${stk(r.final.inStock)}</div>
     </div>`;
+  }
 
   // ── Étape 3 : Components ─────────────────────────────────────
   document.getElementById('craftComponents').innerHTML =
@@ -238,7 +284,10 @@ function calcCraft() {
         : '';
       return `
         <div class="mat-row" style="grid-template-columns:1fr 1fr 110px;align-items:start;padding:10px 14px">
-          <div class="mat-name">${esc(name)}</div>
+          <div class="mat-name">
+            ${esc(name)}
+            <div style="display:flex;gap:4px;margin-top:6px">${machineBtns(name, d.machine || DEFAULT_MACHINE)}</div>
+          </div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:11px;line-height:2">
             ${d.batches > 0
               ? `<span style="color:var(--gold2);font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700">${t('construction.craft_units', {n: d.toCraft})}</span>
@@ -261,11 +310,8 @@ function calcCraft() {
     || `<div class="mat-row"><div class="mat-name" style="color:var(--green)">${t('construction.all_in_stock')}</div></div>`;
 
   // ── Étape 2 : Intermediates ─────────────────────────────────
-  // Collecter toutes les matières réellement utilisées dans les recettes
-  const usedMats = new Set();
-  for (const comp of Object.values(COMPOSANTS)) {
-    for (const inp of comp.inputs) usedMats.add(inp.name);
-  }
+  // Filtrer les outputs utiles depuis les matières réellement calculées
+  const usedMats = new Set(Object.keys(r.matieres));
 
   document.getElementById('craftInter').innerHTML =
     Object.entries(r.intermediaires).map(([name, d]) => {
