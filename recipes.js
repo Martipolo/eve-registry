@@ -256,11 +256,8 @@ function _computeAllMatrices(result, stock) {
     }
     if (!best) continue;
 
-    const existingBatches  = result.matrices[best.mxName]?.batches || 0;
-    const alreadyProduced  = existingBatches * best.out.qty;
-    if (alreadyProduced >= needed) continue;
-
-    const additionalBatches = Math.ceil((needed - alreadyProduced) / best.out.qty);
+    const existingBatches   = result.matrices[best.mxName]?.batches || 0;
+    const additionalBatches = Math.ceil(needed / best.out.qty);
     const newTotal = existingBatches + additionalBatches;
     const toMine   = newTotal * best.rec.batch;
     const inStock  = stock[best.mxName] || 0;
